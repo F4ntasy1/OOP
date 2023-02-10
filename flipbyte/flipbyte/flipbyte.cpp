@@ -1,4 +1,4 @@
-﻿// flipbyte #50
+﻿//50
 #include <iostream>
 #include <string>
 #include <bitset>
@@ -40,6 +40,8 @@ std::string swapString(std::string str)
 
 int main(int argc, char* argv[])
 {
+    const int MAX_BYTE = 255;
+
     if (argc != 2)
     {
         std::cout << "Invalid arguments count. "
@@ -59,15 +61,15 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    if (byte < 0 || byte > 255)
+    if (byte < 0 || byte > MAX_BYTE)
     {
         std::cout << "Argument <byte> must be between 0 and 255\n";
         return 1;
     }
 
-    std::string binary = convertByteToBinary(byte);
+    auto binary = convertByteToBinary(byte);
 
-    std::string binarySwap = swapString(binary);
+    auto binarySwap = swapString(binary);
 
     std::cout << convertBinaryToByte(binarySwap);
 }

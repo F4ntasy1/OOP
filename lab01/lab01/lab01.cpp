@@ -1,5 +1,4 @@
-﻿// extract
-
+﻿//50
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -76,13 +75,12 @@ int main(int argc, char* argv[])
         size--;
     }
 
-    // If the fragment size should be the size of the text in the file
-    /*if (size > 0)
+    if (size > 0)
     {
         std::cout << "The value of the <fragment size> argument must not "
             << "exceed the length of the file content";
         return 1;
-    }*/
+    }
 
     if (!output.flush())
     {
