@@ -1,0 +1,3 @@
+/x64/Debug/*.exe
+/.vs/
+/multimatrix/x64/
