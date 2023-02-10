@@ -1,5 +1,4 @@
-﻿//50
-#include <iostream>
+﻿#include <iostream>
 #include <fstream>
 #include <string>
 #include <vector>
@@ -31,16 +30,22 @@ std::vector<std::vector<float>> readMatrixFromFileToVector(
 int saveMatrixInFile(
     std::vector<std::vector<float>> matrix, std::ofstream& outFile)
 {
-    for (int i = 0; i < 3; i++)
+    const char TABULATION = '\t';
+
+    for (auto row : matrix)
     {
-        for (int j = 0; j < 3; j++)
+        short tabulationCount = 0;
+
+        for (auto element : row)
         {
-            outFile << matrix[i][j];
+            outFile << element;
             
-            if (j < 2)
+            if (tabulationCount < 2)
             {
-                outFile << "\t";
+                outFile << TABULATION;
             }
+
+            tabulationCount++;
         }
 
         outFile << std::endl;

@@ -1,7 +1,7 @@
-﻿//50
-#include <iostream>
+﻿#include <iostream>
 #include <string>
 #include <bitset>
+#include <algorithm>
 
 std::string convertByteToBinary(int byte)
 {
@@ -14,8 +14,9 @@ std::string convertByteToBinary(int byte)
         buffer += char('0' + byte % 2);
         byte = byte / 2;
     } while (byte > 0);
+    
+    auto result = std::string(buffer.crbegin(), buffer.crend());
 
-    std::string result = std::string(buffer.crbegin(), buffer.crend());
     result.insert(0, MAX_LENGTH - buffer.length(), '0');
 
     return result;
@@ -24,18 +25,6 @@ std::string convertByteToBinary(int byte)
 int convertBinaryToByte(std::string binary)
 {
     return std::bitset<32>(binary).to_ulong();
-}
-
-std::string swapString(std::string str)
-{
-    std::string swapStr = std::string();
-
-    for (int i = str.length() - 1; i >= 0; i--)
-    {
-        swapStr += str[i];
-    }
-
-    return swapStr;
 }
 
 int main(int argc, char* argv[])
@@ -69,7 +58,7 @@ int main(int argc, char* argv[])
 
     auto binary = convertByteToBinary(byte);
 
-    auto binarySwap = swapString(binary);
+    std::reverse(binary.begin(), binary.end());
 
-    std::cout << convertBinaryToByte(binarySwap);
+    std::cout << convertBinaryToByte(binary);
 }
