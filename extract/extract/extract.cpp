@@ -1,7 +1,62 @@
-﻿//50
-#include <iostream>
+﻿#include <iostream>
 #include <fstream>
 #include <string>
+
+int validateParameters(std::ifstream& input, int startPos, int size)
+{
+    if (startPos < 0 || size < 0)
+    {
+        std::cout << "Arguments <start position> and <fragment size> "
+            << "must be greater than or equal to 0\n";
+        return 1;
+    }
+
+    int count = 0;
+    while (count < startPos && input.get())
+    {
+        count++;
+    }
+
+    if (count < startPos)
+    {
+        std::cout << "The value of the <start position> argument must not "
+            << "exceed the length of the file content\n";
+        return 1;
+    }
+
+    return 0;
+}
+
+int copyFileFragment(std::ifstream& input, std::ofstream& output, int size)
+{
+    char ch;
+
+    while (size > 0 && input.get(ch))
+    {
+        if (!output.put(ch))
+        {
+            std::cout << "Failed to save data on file\n";
+            return 1;
+        }
+
+        size--;
+    }
+
+    if (size > 0)
+    {
+        std::cout << "The value of the <fragment size> argument must not "
+            << "exceed the length of the file content\n";
+        return 1;
+    }
+
+    if (!output.flush())
+    {
+        std::cout << "Failed to save data on disk\n";
+        return 1;
+    }
+
+    return 0;
+}
 
 int main(int argc, char* argv[])
 {
@@ -42,51 +97,10 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    if (startPos < 0 || size < 0)
+    if (validateParameters(input, startPos, size))
     {
-        std::cout << "Arguments <start position> and <fragment size> "
-            << "must be greater than or equal to 0\n";
         return 1;
     }
 
-    int count = 0;
-    char ch;
-
-    while (count < startPos && input.get(ch))
-    {
-        count++;
-    }
-
-    if (count < startPos)
-    {
-        std::cout << "The value of the <start position> argument must not "
-            << "exceed the length of the file content\n";
-        return 1;
-    }
-
-    while (size > 0 && input.get(ch))
-    {
-        if (!output.put(ch))
-        {
-            std::cout << "Failed to save data on disk\n";
-            return 1;
-        }
-
-        size--;
-    }
-
-    if (size > 0)
-    {
-        std::cout << "The value of the <fragment size> argument must not "
-            << "exceed the length of the file content";
-        return 1;
-    }
-
-    if (!output.flush())
-    {
-        std::cout << "Failed to save data on disk\n";
-        return 1;
-    }
-
-    return 0;
+    return copyFileFragment(input, output, size);
 }
