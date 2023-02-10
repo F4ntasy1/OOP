@@ -1,0 +1,5 @@
+*.exe
+/.vs/*
+/extract/x64/*
+/extract/Debug/*
+/Debug/*
