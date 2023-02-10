@@ -1,4 +1,0 @@
-﻿  flipbyte.cpp
-C:\Files\Programming\OOP\flipbyte\flipbyte\flipbyte.cpp(33,5): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
-C:\Files\Programming\OOP\flipbyte\flipbyte\flipbyte.cpp(58,34): warning C4101: ex: неиспользованная локальная переменная
-  flipbyte.vcxproj -> C:\Files\Programming\OOP\flipbyte\x64\Debug\flipbyte.exe
