@@ -2,7 +2,7 @@
 #include <fstream>
 #include <string>
 
-int validateParameters(std::ifstream& input, int startPos, int size)
+int validateParameters(std::ifstream& input, const int startPos, const int size)
 {
     if (startPos < 0 || size < 0)
     {
@@ -12,7 +12,8 @@ int validateParameters(std::ifstream& input, int startPos, int size)
     }
 
     int count = 0;
-    while (count < startPos && input.get())
+    char ch;
+    while (count < startPos && input.get(ch))
     {
         count++;
     }
