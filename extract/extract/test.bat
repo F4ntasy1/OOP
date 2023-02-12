@@ -38,6 +38,10 @@ rem проверяем на неудачное открытие входного файла
 %PROGRAM% non-existing-file.txt %TEMP%\out.txt 0 0
 if NOT ERRORLEVEL 1 goto err
 
+rem проверяем программу на неудачное открытие файла для записи
+%PROGRAM% hello-world.bin %TEMP%\ 0 0
+if NOT ERRORLEVEL 1 goto err
+
 echo All tests passed
 exit /B 0
 
