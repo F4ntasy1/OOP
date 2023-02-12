@@ -1,2 +1,21 @@
 ﻿  multmatrix.cpp
   multmatrix.vcxproj -> C:\Files\Programming\OOP\multmatrix\x64\Debug\multmatrix.exe
+  Invalid arguments count
+  Usage: multmatrix.exe <matrix file1> <matrix file2>
+  Invalid arguments count
+  Usage: multmatrix.exe <matrix file1> <matrix file2>
+  Failed to open non-existing-file for reading
+  Failed to open non-existing-file for reading
+  Unsupported matrix format
+  Use numbers as coefficients, and also consider the size of the matrix - 3x3
+  Unsupported matrix format
+  Use numbers as coefficients, and also consider the size of the matrix - 3x3
+  Unsupported matrix format
+  Use numbers as coefficients, and also consider the size of the matrix - 3x3
+  Unsupported matrix format
+  Use numbers as coefficients, and also consider the size of the matrix - 3x3
+  FC: ═хфюяєёЄшь√щ ъы■ў
+  
+  FC: ═хфюёЄрЄюўэюх ъюышўхёЄтю шьхэ Їрщыют
+  
+  All tests passed

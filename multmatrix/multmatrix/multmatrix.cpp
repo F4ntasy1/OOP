@@ -16,9 +16,19 @@ std::vector<std::vector<float>> readMatrixFromFileToVector(
 
         for (int j = 0; j < 3; j++)
         {
-            file >> num;
+            if (!(file >> num))
+            {
+                row.clear();
+                break;
+            }
 
             row.push_back(num);
+        }
+
+        if (row.empty())
+        {
+            matrix.clear();
+            break;
         }
 
         matrix.push_back(row);
@@ -107,6 +117,14 @@ int main(int argc, char* argv[])
 
     auto matrix1 = readMatrixFromFileToVector(fileMatrix1);
     auto matrix2 = readMatrixFromFileToVector(fileMatrix2);
+
+    if (matrix1.empty() || matrix2.empty())
+    {
+        std::cout << "Unsupported matrix format\n"
+            << "Use numbers as coefficients, and also "
+            << "consider the size of the matrix - 3x3\n";
+        return 1;
+    }
 
     auto result = multiplyMatrices(matrix1, matrix2);
 

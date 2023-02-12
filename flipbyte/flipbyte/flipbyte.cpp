@@ -60,5 +60,5 @@ int main(int argc, char* argv[])
 
     std::reverse(binary.begin(), binary.end());
 
-    std::cout << convertBinaryToByte(binary);
+    std::cout << convertBinaryToByte(binary) << std::endl;
 }
