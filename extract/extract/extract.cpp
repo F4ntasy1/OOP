@@ -6,12 +6,9 @@ void copyFileFragment(std::istream& input, std::ostream& output, int size)
 {
     char ch;
 
-    for (size; size > 0 && input.get(ch); size--)
+    for (size; size > 0 && input.read((char*)&ch, sizeof(ch)); size--)
     {
-        if (!output.put(ch))
-        {
-            throw std::invalid_argument("Failed to save data on file\n");
-        }
+        output << ch;
     }
 
     if (size > 0)
@@ -39,6 +36,26 @@ void validateParameters(
         throw std::invalid_argument("Invalid arguments count\n"
             "Usage: extract.exe <input file> <output file> "
             "<start position> <fragment size>\n");
+    }
+
+    try
+    {
+        input.open(argv[1], std::ios::binary);
+    }
+    catch (const std::exception)
+    {
+        std::cout << "Failed to open " << argv[1] << " for reading\n";
+        throw std::invalid_argument("");
+    }
+
+    try
+    {
+        output.open(argv[2], std::ios::binary);
+    }
+    catch (const std::exception)
+    {
+        std::cout << "Failed to open " << argv[2] << " for writing\n";
+        throw std::invalid_argument("");
     }
 
     if (!input.is_open())
@@ -86,8 +103,8 @@ void validateParameters(
 
 int main(int argc, char* argv[])
 {
-    std::ifstream input(argv[1]);
-    std::ofstream output(argv[2]);
+    std::ifstream input;
+    std::ofstream output;
     int startPosition;
     int fragmentSize;
 
