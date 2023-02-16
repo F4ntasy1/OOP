@@ -42,6 +42,10 @@ rem проверяем программу на неудачное открытие файла для записи
 %PROGRAM% hello-world.bin %TEMP%\ 0 0
 if NOT ERRORLEVEL 1 goto err
 
+rem проверяем программу на неудачное открытие файла для записи файлом только для чтения
+%PROGRAM% test_data/hello-world.bin test_data/secure_outputt.txt 0 0
+if NOT ERRORLEVEL 1 goto err
+
 echo All tests passed
 exit /B 0
 

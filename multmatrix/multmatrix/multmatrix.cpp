@@ -3,16 +3,17 @@
 #include <string>
 #include <vector>
 
+//using ...type
 std::vector<std::vector<float>> readMatrixFromFileToVector(
     std::ifstream& file)
 {
+    // вынести значения 3 в константы
     std::vector<std::vector<float>> matrix;
-    std::vector<float> row;
 
     float num;
     for (int i = 0; i < 3; i++)
     {
-        row.clear();
+        std::vector<float> row;
 
         for (int j = 0; j < 3; j++)
         {
@@ -25,6 +26,7 @@ std::vector<std::vector<float>> readMatrixFromFileToVector(
             row.push_back(num);
         }
 
+        //exception
         if (row.empty())
         {
             matrix.clear();
@@ -38,7 +40,7 @@ std::vector<std::vector<float>> readMatrixFromFileToVector(
 }
 
 int saveMatrixInFile(
-    std::vector<std::vector<float>> matrix, std::ofstream& outFile)
+    const std::vector<std::vector<float>>& matrix, std::ofstream& outFile)
 {
     const char TABULATION = '\t';
 
@@ -46,6 +48,7 @@ int saveMatrixInFile(
     {
         short tabulationCount = 0;
 
+        // поискать аналог implode php
         for (auto element : row)
         {
             outFile << element;
@@ -71,15 +74,14 @@ int saveMatrixInFile(
 }
 
 std::vector<std::vector<float>> multiplyMatrices(
-    std::vector<std::vector<float>> matrix1, 
-    std::vector<std::vector<float>> matrix2)
+    const std::vector<std::vector<float>>& matrix1, 
+    const std::vector<std::vector<float>>& matrix2)
 {
     std::vector<std::vector<float>> matrixResult;
 
-    std::vector<float> row;
     for (int i = 0; i < 3; i++)
     {
-        row.clear();
+        std::vector<float> row;
 
         for (int j = 0; j < 3; j++)
         {

@@ -16,6 +16,10 @@ rem проверяем программу на неудачное открытие файла для записи
 %PROGRAM% decrypt test_data/hello-world-crypt.bin %TEMP%\ 177
 if NOT ERRORLEVEL 1 goto err
 
+rem проверяем программу на неудачное открытие файла для записи файлом для чтения
+%PROGRAM% decrypt test_data/hello-world-crypt.bin test_data/only-readable-file.txt 177
+if NOT ERRORLEVEL 1 goto err
+
 rem проверяем программу на некорректный параметр <action>
 %PROGRAM% non-exist-action test_data/hello-world.bin %TEMP%\out.txt 177
 if NOT ERRORLEVEL 1 goto err

@@ -2,7 +2,7 @@
 #include <fstream>
 #include <string>
 
-int validateParameters(std::ifstream& input, const int startPos, const int size)
+int validateParameters(std::istream& input, const int startPos, const int size)
 {
     if (startPos < 0 || size < 0)
     {
@@ -32,6 +32,10 @@ int copyFileFragment(std::ifstream& input, std::ofstream& output, int size)
 {
     char ch;
 
+    /*for (size; size > 0 && input.get(ch); size--)
+    {
+
+    }*/
     while (size > 0 && input.get(ch))
     {
         if (!output.put(ch))
@@ -91,7 +95,7 @@ int main(int argc, char* argv[])
         startPos = std::stoi(argv[3]);
         size = std::stoi(argv[4]);
     }
-    catch (const std::exception & ex)
+    catch (const std::exception & /*ex*/)
     {
         std::cout << "Arguments <start position> and <fragment size> "
             << "must be numeric\n";

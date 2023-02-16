@@ -15,6 +15,8 @@ std::string convertByteToBinary(int byte)
         byte = byte / 2;
     } while (byte > 0);
     
+    // std::reverse(buffer.begin(), buffer.end());
+
     auto result = std::string(buffer.crbegin(), buffer.crend());
 
     result.insert(0, MAX_LENGTH - buffer.length(), '0');
@@ -29,6 +31,7 @@ int convertBinaryToByte(std::string binary)
 
 int main(int argc, char* argv[])
 {
+    //numeric limits byte
     const int MAX_BYTE = 255;
 
     if (argc != 2)
