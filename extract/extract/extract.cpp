@@ -2,110 +2,114 @@
 #include <fstream>
 #include <string>
 
-int validateParameters(std::istream& input, const int startPos, const int size)
-{
-    if (startPos < 0 || size < 0)
-    {
-        std::cout << "Arguments <start position> and <fragment size> "
-            << "must be greater than or equal to 0\n";
-        return 1;
-    }
-
-    int count = 0;
-    char ch;
-    while (count < startPos && input.get(ch))
-    {
-        count++;
-    }
-
-    if (count < startPos)
-    {
-        std::cout << "The value of the <start position> argument must not "
-            << "exceed the length of the file content\n";
-        return 1;
-    }
-
-    return 0;
-}
-
-int copyFileFragment(std::ifstream& input, std::ofstream& output, int size)
+void copyFileFragment(std::istream& input, std::ostream& output, int size)
 {
     char ch;
 
-    /*for (size; size > 0 && input.get(ch); size--)
-    {
-
-    }*/
-    while (size > 0 && input.get(ch))
+    for (size; size > 0 && input.get(ch); size--)
     {
         if (!output.put(ch))
         {
-            std::cout << "Failed to save data on file\n";
-            return 1;
+            throw std::invalid_argument("Failed to save data on file\n");
         }
-
-        size--;
     }
 
     if (size > 0)
     {
-        std::cout << "The value of the <fragment size> argument must not "
-            << "exceed the length of the file content\n";
-        return 1;
+        throw std::invalid_argument("The value of the <fragment size> argument "
+            "must not exceed the length of the file content\n");
     }
 
     if (!output.flush())
     {
-        std::cout << "Failed to save data on disk\n";
-        return 1;
+        throw std::invalid_argument("Failed to save data on disk\n");
+    }
+}
+
+void validateParameters(
+    int argc, 
+    char* argv[], 
+    int& startPosition, 
+    int& fragmentSize, 
+    std::ifstream& input, 
+    std::ofstream& output)
+{
+    if (argc != 5)
+    {
+        throw std::invalid_argument("Invalid arguments count\n"
+            "Usage: extract.exe <input file> <output file> "
+            "<start position> <fragment size>\n");
     }
 
-    return 0;
+    if (!input.is_open())
+    {
+        std::cout << "Failed to open " << argv[1] << " for reading\n";
+        throw std::invalid_argument("");
+    }
+
+    if (!output.is_open())
+    {
+        std::cout << "Failed to open " << argv[2] << " for writing\n";
+        throw std::invalid_argument("");
+    }
+
+    try
+    {
+        startPosition = std::stoi(argv[3]);
+        fragmentSize = std::stoi(argv[4]);
+    }
+    catch (const std::exception)
+    {
+        throw std::invalid_argument("Arguments <start position> and "
+            "fragment size> must be numeric\n");
+    }
+
+    if (startPosition < 0 || fragmentSize < 0)
+    {
+        throw std::invalid_argument("Arguments <start position> and "
+            "fragment size> must be greater than or equal to 0\n");
+    }
+
+    int count = 0;
+    char ch;
+    while (count < startPosition && input.get(ch))
+    {
+        count++;
+    }
+
+    if (count < startPosition)
+    {
+        throw std::invalid_argument("The value of the <start position> "
+            "argument must not exceed the length of the file content\n");
+    }
 }
 
 int main(int argc, char* argv[])
 {
-    if (argc != 5)
-    {
-        std::cout << "Invalid arguments count\n"
-            << "Usage: extract.exe <input file> <output file> "
-            << "<start position> <fragment size>\n";
-        return 1;
-    }
-
     std::ifstream input(argv[1]);
-    if (!input.is_open())
-    {
-        std::cout << "Failed to open " << argv[1] << " for reading\n";
-        return 1;
-    }
-
     std::ofstream output(argv[2]);
-    if (!output.is_open())
-    {
-        std::cout << "Failed to open " << argv[2] << " for writing\n";
-        return 1;
-    }
-
-    int startPos;
-    int size;
+    int startPosition;
+    int fragmentSize;
 
     try
     {
-        startPos = std::stoi(argv[3]);
-        size = std::stoi(argv[4]);
+        validateParameters(argc, argv, startPosition, fragmentSize, input, output);
     }
-    catch (const std::exception & /*ex*/)
+    catch (const std::invalid_argument& e)
     {
-        std::cout << "Arguments <start position> and <fragment size> "
-            << "must be numeric\n";
+        std::cout << e.what();
         return 1;
     }
 
-    if (validateParameters(input, startPos, size))
+    try
     {
+        copyFileFragment(input, output, fragmentSize);
+    }
+    catch (const std::invalid_argument& e)
+    {
+        std::cout << e.what();
         return 1;
     }
 
-    return copyFileFragment(input, output, size);
+    return 0;
 }
