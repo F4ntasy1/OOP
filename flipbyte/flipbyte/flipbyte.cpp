@@ -28,14 +28,16 @@ void validateParameters(int argc, char* argv[], int& byte)
 
 int revertBitsInByte(int byte)
 {
-    return ((byte << 7) & 128) |
-        ((byte << 5) & 64) |
-        ((byte << 3) & 32) |
-        ((byte << 1) & 16) |
-        ((byte >> 1) & 8) |
-        ((byte >> 3) & 4) |
-        ((byte >> 5) & 2) |
-        ((byte >> 7) & 1);
+    const int FOUR_SHIFT = 4;
+    const int TWO_SHIFT = 2;
+    const int ONE_SHIFT = 1;
+
+    byte = ((byte & 0b1111) << FOUR_SHIFT) | 
+        ((byte & 0b00001111) >> FOUR_SHIFT);
+    byte = ((byte & 0b00110011) << TWO_SHIFT) | 
+        ((byte & 0b11001100) >> TWO_SHIFT);
+    return ((byte & 0b01010101) << ONE_SHIFT) | 
+        ((byte & 0b10101010) >> ONE_SHIFT);
 }
 
 int main(int argc, char* argv[])
