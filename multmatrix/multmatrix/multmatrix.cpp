@@ -2,141 +2,184 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <sstream>
 
-//using ...type
-std::vector<std::vector<float>> readMatrixFromFileToVector(
-    std::ifstream& file)
+using matrix = std::vector<std::vector<float>>;
+
+const int MATRIX_SIZE = 3;
+
+void readMatrixFromFileToVector(std::ifstream& file, matrix& matrixResult)
 {
-    // вынести значения 3 в константы
-    std::vector<std::vector<float>> matrix;
-
     float num;
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < MATRIX_SIZE; i++)
     {
         std::vector<float> row;
 
-        for (int j = 0; j < 3; j++)
+        for (int j = 0; j < MATRIX_SIZE; j++)
         {
             if (!(file >> num))
             {
-                row.clear();
-                break;
+                throw std::invalid_argument("Unsupported matrix format\n"
+                    "Use numbers as coefficients, and also "
+                    "consider the size of the matrix - 3x3\n");
             }
 
             row.push_back(num);
         }
 
-        //exception
-        if (row.empty())
-        {
-            matrix.clear();
-            break;
-        }
-
-        matrix.push_back(row);
+        matrixResult.push_back(row);
     }
-
-    return matrix;
 }
 
-int saveMatrixInFile(
-    const std::vector<std::vector<float>>& matrix, std::ofstream& outFile)
+void saveMatrixInOutFile(const matrix& matrixToSave, std::ofstream& outFile)
 {
-    const char TABULATION = '\t';
-
-    for (auto row : matrix)
+    for (auto row : matrixToSave)
     {
-        short tabulationCount = 0;
+        std::ostringstream oss;
 
-        // поискать аналог implode php
-        for (auto element : row)
-        {
-            outFile << element;
-            
-            if (tabulationCount < 2)
-            {
-                outFile << TABULATION;
-            }
+        std::copy(row.begin(), row.end(), std::ostream_iterator<float>(oss, "\t"));
 
-            tabulationCount++;
-        }
-
-        outFile << std::endl;
+        outFile << oss.str() << std::endl;
     }
 
     if (!outFile.flush())
     {
-        std::cout << "Failed to save data on disk\n";
-        return 1;
+        throw std::invalid_argument("Failed to save data on disk\n");
     }
-
-    return 0;
 }
 
-std::vector<std::vector<float>> multiplyMatrices(
-    const std::vector<std::vector<float>>& matrix1, 
-    const std::vector<std::vector<float>>& matrix2)
+void multiplyMatrixes(
+    const matrix& matrix1, 
+    const matrix& matrix2, 
+    matrix& matrixResult)
 {
-    std::vector<std::vector<float>> matrixResult;
-
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < MATRIX_SIZE; i++)
     {
         std::vector<float> row;
 
-        for (int j = 0; j < 3; j++)
+        for (int j = 0; j < MATRIX_SIZE; j++)
         {
             row.push_back(matrix1[i][j] * matrix2[j][i]);
         }
 
         matrixResult.push_back(row);
     }
+}
 
-    return matrixResult;
+void validateParameters(
+    int argc, 
+    char* argv[], 
+    std::ifstream& fileMatrix1,
+    std::ifstream& fileMatrix2,
+    std::ofstream& output)
+{
+    const std::string OUTPUT_FILE_NAME = "matrix-result.txt";
+
+    if (argc != 3)
+    {
+        throw std::invalid_argument("Invalid arguments count\n"
+            "Usage: multmatrix.exe <matrix file1> <matrix file2>\n");
+    }
+
+    try
+    {
+        fileMatrix1.open(argv[1]);
+    }
+    catch (const std::exception)
+    {
+        std::cout << "Failed to open " << argv[1] << " for reading\n";
+        throw std::invalid_argument("");
+    }
+
+    try
+    {
+        fileMatrix2.open(argv[2]);
+    }
+    catch (const std::exception)
+    {
+        std::cout << "Failed to open " << argv[2] << " for reading\n";
+        throw std::invalid_argument("");
+    }
+
+    if (!fileMatrix1.is_open())
+    {
+        std::cout << "Failed to open " << argv[1] << " for reading\n";
+        throw std::invalid_argument("");
+    }
+
+    if (!fileMatrix2.is_open())
+    {
+        std::cout << "Failed to open " << argv[2] << " for reading\n";
+        throw std::invalid_argument("");
+    }
+
+    try
+    {
+        output.open(OUTPUT_FILE_NAME);
+    }
+    catch (const std::exception)
+    {
+        std::cout << "Failed to open " << OUTPUT_FILE_NAME << " for reading\n";
+        throw std::invalid_argument("");
+    }
+
+    if (!output.is_open())
+    {
+        throw std::invalid_argument("Failed to open result file for writing\n");
+    }
 }
 
 int main(int argc, char* argv[])
 {
-    if (argc != 3)
+    std::ifstream fileMatrix1;
+    std::ifstream fileMatrix2;
+    std::ofstream output;
+
+    try
     {
-        std::cout << "Invalid arguments count\n"
-            << "Usage: multmatrix.exe <matrix file1> <matrix file2>\n";
+        validateParameters(argc, argv, fileMatrix1, fileMatrix2, output);
+    }
+    catch (const std::invalid_argument& e)
+    {
+        std::cout << e.what();
         return 1;
     }
 
-    std::ifstream fileMatrix1(argv[1]);
-    if (!fileMatrix1.is_open())
+    matrix matrix1;
+    matrix matrix2;
+
+    try
     {
-        std::cout << "Failed to open " << argv[1] << " for reading\n";
+        readMatrixFromFileToVector(fileMatrix1, matrix1);
+    }
+    catch (const std::invalid_argument& e)
+    {
+        std::cout << e.what();
         return 1;
     }
 
-    std::ifstream fileMatrix2(argv[2]);
-    if (!fileMatrix2.is_open())
+    try
     {
-        std::cout << "Failed to open " << argv[2] << " for reading\n";
+        readMatrixFromFileToVector(fileMatrix2, matrix2);
+    }
+    catch (const std::invalid_argument& e)
+    {
+        std::cout << e.what();
         return 1;
     }
 
-    auto matrix1 = readMatrixFromFileToVector(fileMatrix1);
-    auto matrix2 = readMatrixFromFileToVector(fileMatrix2);
+    matrix matrixResult;
+    multiplyMatrixes(matrix1, matrix2, matrixResult);
 
-    if (matrix1.empty() || matrix2.empty())
+    try
     {
-        std::cout << "Unsupported matrix format\n"
-            << "Use numbers as coefficients, and also "
-            << "consider the size of the matrix - 3x3\n";
+        saveMatrixInOutFile(matrixResult, output);
+    }
+    catch (const std::invalid_argument& e)
+    {
+        std::cout << e.what();
         return 1;
     }
 
-    auto result = multiplyMatrices(matrix1, matrix2);
-
-    std::ofstream output("matrixResult.txt");
-
-    if (!output.is_open())
-    {
-        std::cout << "Failed to open result file for writing\n";
-        return 1;
-    }
-
-    return saveMatrixInFile(result, output) ? 1 : 0;
+    return 0;
 }
