@@ -2,7 +2,7 @@
 #include <fstream>
 #include <string>
 
-void copyFileFragment(std::istream& input, std::ostream& output, int size)
+void CopyFileFragment(std::istream& input, std::ostream& output, int size)
 {
     char ch;
 
@@ -23,7 +23,7 @@ void copyFileFragment(std::istream& input, std::ostream& output, int size)
     }
 }
 
-void validateParameters(
+void ValidateParameters(
     int argc, 
     char* argv[], 
     int& startPosition, 
@@ -110,7 +110,7 @@ int main(int argc, char* argv[])
 
     try
     {
-        validateParameters(argc, argv, startPosition, fragmentSize, input, output);
+        ValidateParameters(argc, argv, startPosition, fragmentSize, input, output);
     }
     catch (const std::invalid_argument& e)
     {
@@ -120,7 +120,7 @@ int main(int argc, char* argv[])
 
     try
     {
-        copyFileFragment(input, output, fragmentSize);
+        CopyFileFragment(input, output, fragmentSize);
     }
     catch (const std::invalid_argument& e)
     {

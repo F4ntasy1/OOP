@@ -13,7 +13,7 @@ const int MAX_FIELD_SIZE = 100;
 const char FILL_SYMBOL = '.';
 const char FILL_START_SYMBOL = 'O';
 
-void validateParameters(
+void ValidateParameters(
     int argc, char* argv[], std::ifstream& input, std::ofstream& output)
 {
     if (argc != 3)
@@ -58,7 +58,7 @@ void validateParameters(
     }
 }
 
-void copyFieldFromFileToVector(std::istream& input, field& fieldResult)
+void CopyFieldFromFileToVector(std::istream& input, field& fieldResult)
 {
     const char ENDL = '\n';
 
@@ -79,7 +79,7 @@ void copyFieldFromFileToVector(std::istream& input, field& fieldResult)
     }
 }
 
-void fillToOutline(field& vec, int x, int y)
+void FillToOutline(field& vec, int x, int y)
 {
     if (y >= vec.size() || x >= vec[y].size() || vec[y][x] != ' ')
     {
@@ -88,13 +88,13 @@ void fillToOutline(field& vec, int x, int y)
 
     vec[y][x] = FILL_SYMBOL;
 
-    fillToOutline(vec, x + 1, y);
-    fillToOutline(vec, x - 1, y);
-    fillToOutline(vec, x, y + 1);
-    fillToOutline(vec, x, y - 1);
+    FillToOutline(vec, x + 1, y);
+    FillToOutline(vec, x - 1, y);
+    FillToOutline(vec, x, y + 1);
+    FillToOutline(vec, x, y - 1);
 }
 
-void fill(field& vec)
+void Fill(field& vec)
 {
     for (int y = 0; y < vec.size(); y++)
     {
@@ -102,16 +102,16 @@ void fill(field& vec)
         {
             if (vec[y][x] == FILL_START_SYMBOL)
             {
-                fillToOutline(vec, x + 1, y);
-                fillToOutline(vec, x - 1, y);
-                fillToOutline(vec, x, y + 1);
-                fillToOutline(vec, x, y - 1);
+                FillToOutline(vec, x + 1, y);
+                FillToOutline(vec, x - 1, y);
+                FillToOutline(vec, x, y + 1);
+                FillToOutline(vec, x, y - 1);
             }
         }
     }
 }
 
-void copyVectorToOutFile(field vec, std::ostream& outFile)
+void CopyVectorToOutFile(field vec, std::ostream& outFile)
 {
     for (auto row : vec)
     {
@@ -135,7 +135,7 @@ int main(int argc, char* argv[])
 
 	try
 	{
-        validateParameters(argc, argv, input, output);
+        ValidateParameters(argc, argv, input, output);
 	}
 	catch (const std::invalid_argument& e)
 	{
@@ -145,13 +145,13 @@ int main(int argc, char* argv[])
 
     field fieldToFill;
 
-    copyFieldFromFileToVector(input, fieldToFill);
+    CopyFieldFromFileToVector(input, fieldToFill);
 
-    fill(fieldToFill);
+    Fill(fieldToFill);
 
     try
     {
-        copyVectorToOutFile(fieldToFill, output);
+        CopyVectorToOutFile(fieldToFill, output);
     }
     catch (const std::invalid_argument& e)
     {

@@ -5,7 +5,7 @@
 const std::string ACTION_CRYPT = "crypt";
 const std::string ACTION_DECRYPT = "decrypt";
 
-void crypt(std::istream& input, std::ostream& output, const int key)
+void Crypt(std::istream& input, std::ostream& output, const int key)
 {
     char ch;
     while (input.read((char*)&ch, sizeof(ch)))
@@ -22,7 +22,7 @@ void crypt(std::istream& input, std::ostream& output, const int key)
     }
 }
 
-void decrypt(std::istream& input, std::ostream& output, const int key)
+void Decrypt(std::istream& input, std::ostream& output, const int key)
 {
     int byte;
     while (input >> byte)
@@ -39,7 +39,48 @@ void decrypt(std::istream& input, std::ostream& output, const int key)
     }
 }
 
-void validateParameters(
+void CheckFilesToOpen(
+    std::ifstream& inFile, 
+    std::ofstream& outFile, 
+    const std::string& inFileName,
+    const std::string& outFileName)
+{
+    std::string failToOpenForReadingMsg = "Failed to open " + inFileName + 
+        " for reading\n";
+
+    std::string failToOpenForWritingMsg = "Failed to open " + outFileName +
+        " for writing\n";
+
+    try
+    {
+        inFile.open(inFileName, std::ios::binary);
+    }
+    catch (const std::exception)
+    {
+        throw std::invalid_argument(failToOpenForReadingMsg);
+    }
+
+    try
+    {
+        outFile.open(outFileName, std::ios::binary);
+    }
+    catch (const std::exception)
+    {
+        throw std::invalid_argument(failToOpenForWritingMsg);
+    }
+
+    if (!inFile.is_open())
+    {
+        throw std::invalid_argument(failToOpenForReadingMsg);
+    }
+
+    if (!outFile.is_open())
+    {
+        throw std::invalid_argument(failToOpenForWritingMsg);
+    }
+}
+
+void ValidateParameters(
     int argc, 
     char* argv[], 
     int& key, 
@@ -63,34 +104,11 @@ void validateParameters(
 
     try
     {
-        input.open(argv[2], std::ios::binary);
+        CheckFilesToOpen(input, output, argv[2], argv[3]);
     }
-    catch (const std::exception)
+    catch (const std::invalid_argument& e)
     {
-        std::cout << "Failed to open " << argv[2] << " for reading\n";
-        throw std::invalid_argument("");
-    }
-
-    try
-    {
-        output.open(argv[3], std::ios::binary);
-    }
-    catch (const std::exception)
-    {
-        std::cout << "Failed to open " << argv[3] << " for writing\n";
-        throw std::invalid_argument("");
-    }
-
-    if (!input.is_open())
-    {
-        std::cout << "Failed to open " << argv[2] << " for reading\n";
-        throw std::invalid_argument("");
-    }
-
-    if (!output.is_open())
-    {
-        std::cout << "Failed to open " << argv[3] << " for writing\n";
-        throw std::invalid_argument("");
+        throw e;
     }
 
     try
@@ -118,7 +136,7 @@ int main(int argc, char* argv[])
 
     try
     {
-        validateParameters(argc, argv, key, action, input, output);
+        ValidateParameters(argc, argv, key, action, input, output);
     }
     catch (const std::invalid_argument& e)
     {
@@ -128,11 +146,11 @@ int main(int argc, char* argv[])
 
     if (action == ACTION_CRYPT)
     {
-        crypt(input, output, key);
+        Crypt(input, output, key);
     }
     else
     {
-        decrypt(input, output, key);
+        Decrypt(input, output, key);
     }
 
     if (!output.flush())

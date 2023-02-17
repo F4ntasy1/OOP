@@ -8,7 +8,7 @@ using matrix = std::vector<std::vector<float>>;
 
 const int MATRIX_SIZE = 3;
 
-void readMatrixFromFileToVector(std::ifstream& file, matrix& matrixResult)
+void ReadMatrixFromFileToVector(std::ifstream& file, matrix& matrixResult)
 {
     float num;
     for (int i = 0; i < MATRIX_SIZE; i++)
@@ -31,7 +31,7 @@ void readMatrixFromFileToVector(std::ifstream& file, matrix& matrixResult)
     }
 }
 
-void saveMatrixInOutFile(const matrix& matrixToSave, std::ofstream& outFile)
+void SaveMatrixInOutFile(const matrix& matrixToSave, std::ofstream& outFile)
 {
     for (auto row : matrixToSave)
     {
@@ -48,7 +48,7 @@ void saveMatrixInOutFile(const matrix& matrixToSave, std::ofstream& outFile)
     }
 }
 
-void multiplyMatrixes(
+void MultiplyMatrixes(
     const matrix& matrix1, 
     const matrix& matrix2, 
     matrix& matrixResult)
@@ -66,7 +66,7 @@ void multiplyMatrixes(
     }
 }
 
-void validateParameters(
+void ValidateParameters(
     int argc, 
     char* argv[], 
     std::ifstream& fileMatrix1,
@@ -137,7 +137,7 @@ int main(int argc, char* argv[])
 
     try
     {
-        validateParameters(argc, argv, fileMatrix1, fileMatrix2, output);
+        ValidateParameters(argc, argv, fileMatrix1, fileMatrix2, output);
     }
     catch (const std::invalid_argument& e)
     {
@@ -150,7 +150,7 @@ int main(int argc, char* argv[])
 
     try
     {
-        readMatrixFromFileToVector(fileMatrix1, matrix1);
+        ReadMatrixFromFileToVector(fileMatrix1, matrix1);
     }
     catch (const std::invalid_argument& e)
     {
@@ -160,7 +160,7 @@ int main(int argc, char* argv[])
 
     try
     {
-        readMatrixFromFileToVector(fileMatrix2, matrix2);
+        ReadMatrixFromFileToVector(fileMatrix2, matrix2);
     }
     catch (const std::invalid_argument& e)
     {
@@ -169,11 +169,11 @@ int main(int argc, char* argv[])
     }
 
     matrix matrixResult;
-    multiplyMatrixes(matrix1, matrix2, matrixResult);
+    MultiplyMatrixes(matrix1, matrix2, matrixResult);
 
     try
     {
-        saveMatrixInOutFile(matrixResult, output);
+        SaveMatrixInOutFile(matrixResult, output);
     }
     catch (const std::invalid_argument& e)
     {

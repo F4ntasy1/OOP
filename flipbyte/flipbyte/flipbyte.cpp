@@ -2,7 +2,7 @@
 #include <string>
 #include <bitset>
 
-void validateParameters(int argc, char* argv[], int& byte)
+void ValidateParameters(int argc, char* argv[], int& byte)
 {
     if (argc != 2)
     {
@@ -26,7 +26,7 @@ void validateParameters(int argc, char* argv[], int& byte)
     }
 }
 
-int revertBitsInByte(int byte)
+int RevertBitsInByte(int byte)
 {
     const int FOUR_SHIFT = 4;
     const int TWO_SHIFT = 2;
@@ -46,7 +46,7 @@ int main(int argc, char* argv[])
 
     try
     {
-        validateParameters(argc, argv, byte);
+        ValidateParameters(argc, argv, byte);
     }
     catch (const std::exception& e)
     {
@@ -54,5 +54,5 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    std::cout << revertBitsInByte(byte) << std::endl;
+    std::cout << RevertBitsInByte(byte) << std::endl;
 }
