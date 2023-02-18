@@ -35,7 +35,7 @@ void OpenFiles(
     {
         output.open(outputPath);
     }
-    catch (const std::exception)
+    catch (const std::exception&)
     {
         throw std::invalid_argument(failedToOpenForWritingMsg);
     }
@@ -60,12 +60,9 @@ void ValidateParameters(
             "Usage: fill.exe <input file> <output file>\n");
     }
 
-    std::string inputPath = argv[1];
-    std::string outputPath = argv[2];
-
     try
     {
-        OpenFiles(input, output, inputPath, outputPath);
+        OpenFiles(input, output, argv[1], argv[2]);
     }
     catch (const std::invalid_argument&)
     {

@@ -26,7 +26,7 @@ if NOT ERRORLEVEL 1 goto err
 %PROGRAM% test_data/test-matrix1.txt test_data/empty.txt
 if NOT ERRORLEVEL 1 goto err
 
-set OUT="/matrixResult.txt"
+set OUT="/matrix-result.txt"
 
 rem провер€ем программу на перемножение матриц
 %PROGRAM% test_data/test-matrix1.txt test_data/test-matrix2.txt

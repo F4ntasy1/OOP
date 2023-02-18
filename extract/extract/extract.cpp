@@ -19,7 +19,47 @@ void CopyFileFragment(std::istream& input, std::ostream& output, int size)
 
     if (!output.flush())
     {
-        throw std::invalid_argument("Failed to save data on disk\n");
+        throw std::runtime_error("Failed to save data on disk\n");
+    }
+}
+
+void OpenFiles(
+    std::ifstream& input,
+    std::ofstream& output,
+    std::string inputPath, 
+    std::string outputPath)
+{
+    std::string failedToOpenForReadingMsg = "Failed to open " +
+        inputPath + " for reading\n";
+    std::string failedToOpenForWritingMsg = "Failed to open " +
+        outputPath + " for writing\n";
+
+    try
+    {
+        input.open(inputPath, std::ios::binary);
+    }
+    catch (const std::exception&)
+    {
+        throw std::invalid_argument(failedToOpenForReadingMsg);
+    }
+
+    try
+    {
+        output.open(outputPath, std::ios::binary);
+    }
+    catch (const std::exception&)
+    {
+        throw std::invalid_argument(failedToOpenForWritingMsg);
+    }
+
+    if (!input.is_open())
+    {
+        throw std::invalid_argument(failedToOpenForReadingMsg);
+    }
+
+    if (!output.is_open())
+    {
+        throw std::invalid_argument(failedToOpenForWritingMsg);
     }
 }
 
@@ -38,36 +78,16 @@ void ValidateParameters(
             "<start position> <fragment size>\n");
     }
 
-    try
-    {
-        input.open(argv[1], std::ios::binary);
-    }
-    catch (const std::exception)
-    {
-        std::cout << "Failed to open " << argv[1] << " for reading\n";
-        throw std::invalid_argument("");
-    }
+    std::string inputPath = argv[1];
+    std::string outputPath = argv[2];
 
     try
     {
-        output.open(argv[2], std::ios::binary);
+        OpenFiles(input, output, inputPath, outputPath);
     }
-    catch (const std::exception)
+    catch (const std::invalid_argument&)
     {
-        std::cout << "Failed to open " << argv[2] << " for writing\n";
-        throw std::invalid_argument("");
-    }
-
-    if (!input.is_open())
-    {
-        std::cout << "Failed to open " << argv[1] << " for reading\n";
-        throw std::invalid_argument("");
-    }
-
-    if (!output.is_open())
-    {
-        std::cout << "Failed to open " << argv[2] << " for writing\n";
-        throw std::invalid_argument("");
+        throw;
     }
 
     try
@@ -75,7 +95,7 @@ void ValidateParameters(
         startPosition = std::stoi(argv[3]);
         fragmentSize = std::stoi(argv[4]);
     }
-    catch (const std::exception)
+    catch (const std::exception&)
     {
         throw std::invalid_argument("Arguments <start position> and "
             "fragment size> must be numeric\n");
@@ -122,7 +142,7 @@ int main(int argc, char* argv[])
     {
         CopyFileFragment(input, output, fragmentSize);
     }
-    catch (const std::invalid_argument& e)
+    catch (const std::exception& e)
     {
         std::cout << e.what();
         return 1;

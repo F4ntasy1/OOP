@@ -39,7 +39,7 @@ void Decrypt(std::istream& input, std::ostream& output, const int key)
     }
 }
 
-void CheckFilesToOpen(
+void OpenFiles(
     std::ifstream& inFile, 
     std::ofstream& outFile, 
     const std::string& inFileName,
@@ -104,18 +104,18 @@ void ValidateParameters(
 
     try
     {
-        CheckFilesToOpen(input, output, argv[2], argv[3]);
+        OpenFiles(input, output, argv[2], argv[3]);
     }
-    catch (const std::invalid_argument& e)
+    catch (const std::invalid_argument&)
     {
-        throw e;
+        throw;
     }
 
     try
     {
         key = std::stoi(argv[4]);
     }
-    catch (const std::exception)
+    catch (const std::exception&)
     {
         throw std::invalid_argument("Argument <key> must be numeric\n");
     }

@@ -36,8 +36,10 @@ int RevertBitsInByte(int byte)
         ((byte & 0b00001111) >> FOUR_SHIFT);
     byte = ((byte & 0b00110011) << TWO_SHIFT) | 
         ((byte & 0b11001100) >> TWO_SHIFT);
-    return ((byte & 0b01010101) << ONE_SHIFT) | 
+    byte = ((byte & 0b01010101) << ONE_SHIFT) | 
         ((byte & 0b10101010) >> ONE_SHIFT);
+
+    return byte;
 }
 
 int main(int argc, char* argv[])
@@ -48,7 +50,7 @@ int main(int argc, char* argv[])
     {
         ValidateParameters(argc, argv, byte);
     }
-    catch (const std::exception& e)
+    catch (const std::invalid_argument& e)
     {
         std::cout << e.what();
         return 1;
