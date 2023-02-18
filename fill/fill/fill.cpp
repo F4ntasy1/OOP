@@ -1,10 +1,8 @@
 ﻿#include <iostream>
 #include <fstream>
 #include <vector>
-#include <string>
-
-// Добавить тесты
-// Добавить обработку пустых строк, подгонять под самую длинную строку с фигурой
+#include <algorithm>
+#include <sstream>
 
 using field = std::vector<std::vector<char>>;
 
@@ -12,6 +10,46 @@ const int MAX_FIELD_SIZE = 100;
 
 const char FILL_SYMBOL = '.';
 const char FILL_START_SYMBOL = 'O';
+
+void OpenFiles(
+    std::ifstream& input, 
+    std::ofstream& output, 
+    const std::string& inputPath,
+    const std::string& outputPath)
+{
+    std::string failedToOpenForReadingMsg = "Failed to open " +
+        inputPath + " for reading\n";
+    std::string failedToOpenForWritingMsg = "Failed to open " +
+        outputPath + " for writing\n";
+
+    try
+    {
+        input.open(inputPath);
+    }
+    catch (const std::exception&)
+    {
+        throw std::invalid_argument(failedToOpenForReadingMsg);
+    }
+
+    try
+    {
+        output.open(outputPath);
+    }
+    catch (const std::exception)
+    {
+        throw std::invalid_argument(failedToOpenForWritingMsg);
+    }
+
+    if (!input.is_open())
+    {
+        throw std::invalid_argument(failedToOpenForReadingMsg);
+    }
+
+    if (!output.is_open())
+    {
+        throw std::invalid_argument(failedToOpenForWritingMsg);
+    }
+}
 
 void ValidateParameters(
     int argc, char* argv[], std::ifstream& input, std::ofstream& output)
@@ -27,35 +65,39 @@ void ValidateParameters(
 
     try
     {
-        input.open(inputPath);
+        OpenFiles(input, output, inputPath, outputPath);
     }
-    catch (const std::exception)
+    catch (const std::invalid_argument&)
     {
-        throw std::invalid_argument("Failed to open " + inputPath + 
-            " for reading\n");
+        throw;
+    }
+}
+
+void EqualizeSizeOfVectorsInVector(field& vec)
+{
+    size_t maxSize = 0;
+
+    for (auto row : vec)
+    {
+        size_t rowSize = row.size();
+
+        if (rowSize > maxSize)
+        {
+            maxSize = rowSize;
+        }
     }
 
-    try
-    {
-        output.open(outputPath);
-    }
-    catch (const std::exception)
-    {
-        throw std::invalid_argument("Failed to open " + outputPath + 
-            " for writing\n");
-    }
+    std::transform(vec.begin(), vec.end(), vec.begin(), 
+    [maxSize](std::vector<char>& row) {
+        size_t rowSize = row.size();
 
-    if (!input.is_open())
-    {
-        throw std::invalid_argument("Failed to open " + inputPath +
-            " for reading\n");
-    }
+        for (rowSize; rowSize < maxSize; rowSize++)
+        {
+            row.push_back(' ');
+        }
 
-    if (!output.is_open())
-    {
-        throw std::invalid_argument("Failed to open " + outputPath +
-            " for writing\n");
-    }
+        return row;
+    });
 }
 
 void CopyFieldFromFileToVector(std::istream& input, field& fieldResult)
@@ -77,6 +119,8 @@ void CopyFieldFromFileToVector(std::istream& input, field& fieldResult)
 
         fieldResult.push_back(row);
     }
+
+    EqualizeSizeOfVectorsInVector(fieldResult);
 }
 
 void FillToOutline(field& vec, int x, int y)
@@ -115,16 +159,16 @@ void CopyVectorToOutFile(field vec, std::ostream& outFile)
 {
     for (auto row : vec)
     {
-        for (auto ch : row)
-        {
-            outFile << ch;
-        }
-        outFile << std::endl;
+        std::ostringstream oss;
+
+        std::copy(row.begin(), row.end(), std::ostream_iterator<char>(oss, ""));
+
+        outFile << oss.str() << std::endl;
     }
 
     if (!outFile.flush())
     {
-        throw std::invalid_argument("Failed to save data on disk\n");
+        throw std::runtime_error("Failed to save data on disk\n");
     }
 }
 
@@ -153,7 +197,7 @@ int main(int argc, char* argv[])
     {
         CopyVectorToOutFile(fieldToFill, output);
     }
-    catch (const std::invalid_argument& e)
+    catch (const std::runtime_error& e)
     {
         std::cout << e.what();
         return 1;
