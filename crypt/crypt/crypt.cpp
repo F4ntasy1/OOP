@@ -5,6 +5,18 @@
 const std::string ACTION_CRYPT = "crypt";
 const std::string ACTION_DECRYPT = "decrypt";
 
+const int SHIFT_LEFT_BY_TWO = 2;
+const int SHIFT_RIGHT_BY_TWO = 2;
+const int SHIFT_RIGHT_BY_FIVE = 5;
+const int SHIFT_LEFT_BY_THREE = 3;
+
+struct Params {
+    std::string action;
+    std::string inputPath;
+    std::string outputPath;
+    int key;
+};
+
 void Crypt(std::istream& input, std::ostream& output, const int key)
 {
     char ch;
@@ -13,10 +25,10 @@ void Crypt(std::istream& input, std::ostream& output, const int key)
         int byte = ch ^ key;
 
         int byteCrypt = 
-            ((byte << 2) & 28) |    //28 = 00011100
-            ((byte >> 5) & 3) |     //3 = 00000011
-            ((byte << 3) & 192) |   //192 = 11000000
-            ((byte >> 2) & 32);     //32 = 00100000
+            ((byte << SHIFT_LEFT_BY_TWO) & 0b00011100) |
+            ((byte >> SHIFT_RIGHT_BY_FIVE) & 0b00000011) |
+            ((byte << SHIFT_LEFT_BY_THREE) & 0b11000000) |
+            ((byte >> SHIFT_RIGHT_BY_TWO) & 0b00100000);
 
         output << byteCrypt << ' ';
     }
@@ -28,10 +40,10 @@ void Decrypt(std::istream& input, std::ostream& output, const int key)
     while (input >> byte)
     {
         int byteDecrypt =
-            ((byte & 28) >> 2) |
-            ((byte & 3) << 5) |
-            ((byte & 192) >> 3) |
-            ((byte & 32) << 2);
+            ((byte & 0b00011100) >> SHIFT_LEFT_BY_TWO) |
+            ((byte & 0b00000011) << SHIFT_RIGHT_BY_FIVE) |
+            ((byte & 0b11000000) >> SHIFT_LEFT_BY_THREE) |
+            ((byte & 0b00100000) << SHIFT_RIGHT_BY_TWO);
 
         char ch = byteDecrypt ^ key;
 
@@ -45,112 +57,92 @@ void OpenFiles(
     const std::string& inFileName,
     const std::string& outFileName)
 {
-    std::string failToOpenForReadingMsg = "Failed to open " + inFileName + 
-        " for reading\n";
-
-    std::string failToOpenForWritingMsg = "Failed to open " + outFileName +
-        " for writing\n";
-
-    try
-    {
-        inFile.open(inFileName, std::ios::binary);
-    }
-    catch (const std::exception)
-    {
-        throw std::invalid_argument(failToOpenForReadingMsg);
-    }
-
-    try
-    {
-        outFile.open(outFileName, std::ios::binary);
-    }
-    catch (const std::exception)
-    {
-        throw std::invalid_argument(failToOpenForWritingMsg);
-    }
+    inFile.open(inFileName, std::ios::binary);
+    outFile.open(outFileName, std::ios::binary);
 
     if (!inFile.is_open())
     {
-        throw std::invalid_argument(failToOpenForReadingMsg);
+        throw std::logic_error("Failed to open " + inFileName +
+            " for reading\n");
     }
 
     if (!outFile.is_open())
     {
-        throw std::invalid_argument(failToOpenForWritingMsg);
+        throw std::logic_error("Failed to open " + outFileName +
+            " for writing\n");
     }
 }
 
-void ValidateParameters(
-    int argc, 
-    char* argv[], 
-    int& key, 
-    std::string& action,
-    std::ifstream& input,
-    std::ofstream& output)
+void ValidateParameters(Params& params)
 {
-    if (argc != 5)
+    if (params.action != ACTION_CRYPT && params.action != ACTION_DECRYPT)
     {
-        throw std::invalid_argument("Invalid arguments count\n"
-            "Usage: crypt.exe <action>(crypt|decrypt) "
-            "<input file> <output file> <key>\n");
-    }
-
-    action = argv[1];
-    if (action != ACTION_CRYPT && action != ACTION_DECRYPT)
-    {
-        throw std::invalid_argument("Argument <action> is not defined\n"
+        throw std::runtime_error("Argument <action> is not defined\n"
             "Usage: crypt.exe <action>(crypt|decrypt) ...\n");
     }
 
-    try
+    if (params.key < 0 || params.key > std::numeric_limits<unsigned char>::max())
     {
-        OpenFiles(input, output, argv[2], argv[3]);
-    }
-    catch (const std::invalid_argument&)
-    {
-        throw;
-    }
-
-    try
-    {
-        key = std::stoi(argv[4]);
-    }
-    catch (const std::exception&)
-    {
-        throw std::invalid_argument("Argument <key> must be numeric\n");
-    }
-
-    if (key < 0 || key > std::numeric_limits<unsigned char>::max())
-    {
-        throw std::invalid_argument("Argument <key> must be in "
+        throw std::runtime_error("Argument <key> must be in "
             "the range 0 - 255\n");
     }
 }
 
-int main(int argc, char* argv[])
+Params ParseParameters(int argc, char* argv[])
 {
-    std::string action;
-    std::ifstream input;
-    std::ofstream output;
-    int key;
+    if (argc != 5)
+    {
+        throw std::runtime_error("Invalid arguments count\n"
+            "Usage: crypt.exe <action>(crypt|decrypt) "
+            "<input file> <output file> <key>\n");
+    }
+
+    Params params;
+
+    params.action = argv[1];
+    params.inputPath = argv[2];
+    params.outputPath = argv[3];
 
     try
     {
-        ValidateParameters(argc, argv, key, action, input, output);
+        params.key = std::stoi(argv[4]);
     }
-    catch (const std::invalid_argument& e)
+    catch (const std::exception&)
+    {
+        throw std::runtime_error("Argument <key> must be numeric\n");
+    }
+
+    return params;
+}
+
+int main(int argc, char* argv[])
+{
+    std::ifstream input;
+    std::ofstream output;
+
+    Params params;
+
+    try
+    {
+        params = ParseParameters(argc, argv);
+
+        ValidateParameters(params);
+
+        OpenFiles(input, output, params.inputPath, params.outputPath);
+    }
+    catch (const std::exception& e)
     {
         std::cout << e.what();
         return 1;
     }
 
-    if (action == ACTION_CRYPT)
+    if (params.action == ACTION_CRYPT)
     {
-        Crypt(input, output, key);
+        Crypt(input, output, params.key);
     }
     else
     {
-        Decrypt(input, output, key);
+        Decrypt(input, output, params.key);
     }
 
     if (!output.flush())

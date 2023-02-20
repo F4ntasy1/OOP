@@ -75,11 +75,11 @@ void OpenFiles(
 {
     const std::string OUTPUT_FILE_NAME = "matrix-result.txt";
 
-    std::string failedToOpenFileOneForReadingMsg = "Failed to open " +
+    const std::string failedToOpenFileOneForReadingMsg = "Failed to open " +
         fileMatrixPath1 + " for reading\n";
-    std::string failedToOpenFileTwoForReadingMsg = "Failed to open " +
+    const std::string failedToOpenFileTwoForReadingMsg = "Failed to open " +
         fileMatrixPath2 + " for reading\n";
-    std::string failedToOpenOutFileForWritingMsg = "Failed to open " +
+    const std::string failedToOpenOutFileForWritingMsg = "Failed to open " +
         OUTPUT_FILE_NAME + " for reading\n";
 
     try

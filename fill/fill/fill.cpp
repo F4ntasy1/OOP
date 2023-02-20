@@ -11,63 +11,47 @@ const int MAX_FIELD_SIZE = 100;
 const char FILL_SYMBOL = '.';
 const char FILL_START_SYMBOL = 'O';
 
+struct Params {
+    std::string inputPath;
+    std::string outputPath;
+};
+
 void OpenFiles(
     std::ifstream& input, 
     std::ofstream& output, 
     const std::string& inputPath,
     const std::string& outputPath)
 {
-    std::string failedToOpenForReadingMsg = "Failed to open " +
-        inputPath + " for reading\n";
-    std::string failedToOpenForWritingMsg = "Failed to open " +
-        outputPath + " for writing\n";
-
-    try
-    {
-        input.open(inputPath);
-    }
-    catch (const std::exception&)
-    {
-        throw std::invalid_argument(failedToOpenForReadingMsg);
-    }
-
-    try
-    {
-        output.open(outputPath);
-    }
-    catch (const std::exception&)
-    {
-        throw std::invalid_argument(failedToOpenForWritingMsg);
-    }
+    input.open(inputPath);
+    output.open(outputPath);
 
     if (!input.is_open())
     {
-        throw std::invalid_argument(failedToOpenForReadingMsg);
+        throw std::runtime_error("Failed to open " +
+            inputPath + " for reading\n");
     }
 
     if (!output.is_open())
     {
-        throw std::invalid_argument(failedToOpenForWritingMsg);
+        throw std::runtime_error("Failed to open " +
+            outputPath + " for writing\n");
     }
 }
 
-void ValidateParameters(
-    int argc, char* argv[], std::ifstream& input, std::ofstream& output)
+Params ParseParameters(int argc, char* argv[])
 {
     if (argc != 3)
     {
-        throw std::invalid_argument("Invalid arguments count\n"
+        throw std::runtime_error("Invalid arguments count\n"
             "Usage: fill.exe <input file> <output file>\n");
     }
 
-    try
-    {
-        OpenFiles(input, output, argv[1], argv[2]);
-    }
-    catch (const std::invalid_argument&)
-    {
-        throw;
-    }
+    Params params;
+
+    params.inputPath = argv[1];
+    params.outputPath = argv[2];
+
+    return params;
 }
 
 void EqualizeSizeOfVectorsInVector(field& vec)
@@ -174,11 +158,15 @@ int main(int argc, char* argv[])
     std::ifstream input;
     std::ofstream output;
 
+    Params params;
+
 	try
 	{
-        ValidateParameters(argc, argv, input, output);
+        params = ParseParameters(argc, argv);
+
+        OpenFiles(input, output, params.inputPath, params.outputPath);
 	}
-	catch (const std::invalid_argument& e)
+	catch (const std::exception& e)
 	{
 		std::cout << e.what();
 		return 1;
@@ -194,7 +182,7 @@ int main(int argc, char* argv[])
     {
         CopyVectorToOutFile(fieldToFill, output);
     }
-    catch (const std::runtime_error& e)
+    catch (const std::exception& e)
     {
         std::cout << e.what();
         return 1;
