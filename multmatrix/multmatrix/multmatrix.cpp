@@ -6,14 +6,21 @@
 
 using matrix = std::vector<std::vector<float>>;
 
+using matrixRow = std::vector<float>;
+
 const int MATRIX_SIZE = 3;
+
+struct Params {
+    std::string fileMatrixPath1;
+    std::string fileMatrixPath2;
+};
 
 void ReadMatrixFromFileToVector(std::istream& file, matrix& matrixResult)
 {
     float num;
     for (int i = 0; i < MATRIX_SIZE; i++)
     {
-        std::vector<float> row;
+        matrixRow row;
 
         for (int j = 0; j < MATRIX_SIZE; j++)
         {
@@ -55,7 +62,7 @@ void MultiplyMatrices(
 {
     for (int i = 0; i < MATRIX_SIZE; i++)
     {
-        std::vector<float> row;
+        matrixRow row;
 
         for (int j = 0; j < MATRIX_SIZE; j++)
         {
@@ -75,70 +82,43 @@ void OpenFiles(
 {
     const std::string OUTPUT_FILE_NAME = "matrix-result.txt";
 
-    const std::string failedToOpenFileOneForReadingMsg = "Failed to open " +
-        fileMatrixPath1 + " for reading\n";
-    const std::string failedToOpenFileTwoForReadingMsg = "Failed to open " +
-        fileMatrixPath2 + " for reading\n";
-    const std::string failedToOpenOutFileForWritingMsg = "Failed to open " +
-        OUTPUT_FILE_NAME + " for reading\n";
-
-    try
-    {
-        fileMatrix1.open(fileMatrixPath1);
-    }
-    catch (const std::exception&)
-    {
-        throw std::invalid_argument(failedToOpenFileOneForReadingMsg);
-    }
-
-    try
-    {
-        fileMatrix2.open(fileMatrixPath2);
-    }
-    catch (const std::exception&)
-    {
-        throw std::invalid_argument(failedToOpenFileTwoForReadingMsg);
-    }
+    fileMatrix1.open(fileMatrixPath1);
+    fileMatrix2.open(fileMatrixPath2);
+    output.open(OUTPUT_FILE_NAME);
 
     if (!fileMatrix1.is_open())
     {
-        throw std::invalid_argument(failedToOpenFileOneForReadingMsg);
+        throw std::runtime_error("Failed to open " +
+            fileMatrixPath1 + " for reading\n");
     }
 
     if (!fileMatrix2.is_open())
     {
-        throw std::invalid_argument(failedToOpenFileTwoForReadingMsg);
-    }
-
-    try
-    {
-        output.open(OUTPUT_FILE_NAME);
-    }
-    catch (const std::exception&)
-    {
-        throw std::invalid_argument(failedToOpenOutFileForWritingMsg);
+        throw std::runtime_error("Failed to open " +
+            fileMatrixPath2 + " for reading\n");
     }
 
     if (!output.is_open())
     {
-        throw std::invalid_argument(failedToOpenOutFileForWritingMsg);
+        throw std::runtime_error("Failed to open " +
+            OUTPUT_FILE_NAME + " for reading\n");
     }
 }
 
-void ValidateParameters(
-    int argc, 
-    char* argv[], 
-    std::ifstream& fileMatrix1,
-    std::ifstream& fileMatrix2,
-    std::ofstream& output)
+Params ParseParameters(int argc, char* argv[])
 {
     if (argc != 3)
     {
-        throw std::invalid_argument("Invalid arguments count\n"
+        throw std::runtime_error("Invalid arguments count\n"
             "Usage: multmatrix.exe <matrix file1> <matrix file2>\n");
     }
 
-    OpenFiles(fileMatrix1, fileMatrix2, output, argv[1], argv[2]);
+    Params params;
+
+    params.fileMatrixPath1 = argv[1];
+    params.fileMatrixPath2 = argv[2];
+
+    return params;
 }
 
 int main(int argc, char* argv[])
@@ -147,47 +127,27 @@ int main(int argc, char* argv[])
     std::ifstream fileMatrix2;
     std::ofstream output;
 
-    try
-    {
-        ValidateParameters(argc, argv, fileMatrix1, fileMatrix2, output);
-    }
-    catch (const std::invalid_argument& e)
-    {
-        std::cout << e.what();
-        return 1;
-    }
-
     matrix matrix1;
     matrix matrix2;
-
-    try
-    {
-        ReadMatrixFromFileToVector(fileMatrix1, matrix1);
-    }
-    catch (const std::runtime_error& e)
-    {
-        std::cout << e.what();
-        return 1;
-    }
-
-    try
-    {
-        ReadMatrixFromFileToVector(fileMatrix2, matrix2);
-    }
-    catch (const std::runtime_error& e)
-    {
-        std::cout << e.what();
-        return 1;
-    }
-
     matrix matrixResult;
-    MultiplyMatrices(matrix1, matrix2, matrixResult);
 
     try
     {
+        Params params;
+
+        params = ParseParameters(argc, argv);
+
+        OpenFiles(fileMatrix1, fileMatrix2, output, 
+            params.fileMatrixPath1, params.fileMatrixPath2);
+
+        ReadMatrixFromFileToVector(fileMatrix1, matrix1);
+        ReadMatrixFromFileToVector(fileMatrix2, matrix2);
+
+        MultiplyMatrices(matrix1, matrix2, matrixResult);
+
         SaveMatrixInOutFile(matrixResult, output);
     }
-    catch (const std::runtime_error& e)
+    catch (const std::exception& e)
     {
         std::cout << e.what();
         return 1;

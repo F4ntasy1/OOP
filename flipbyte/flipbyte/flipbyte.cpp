@@ -2,7 +2,16 @@
 #include <string>
 #include <bitset>
 
-void ValidateParameters(int argc, char* argv[], int& byte)
+void ValidateByte(const int byte)
+{
+    if (byte < 0 || byte > std::numeric_limits<unsigned char>::max())
+    {
+        throw std::runtime_error("Argument <byte> must "
+            "be between 0 and 255\n");
+    }
+}
+
+int ParseParameters(int argc, char* argv[])
 {
     if (argc != 2)
     {
@@ -10,20 +19,18 @@ void ValidateParameters(int argc, char* argv[], int& byte)
             "Usage: flipbyte.exe <byte>\n");
     }
 
+    int byte;
+
     try
     {
         byte = std::stoi(argv[1]);
     }
     catch (const std::exception&)
     {
-        throw std::invalid_argument("Argument <byte> must be numeric\n");
+        throw std::runtime_error("Argument <byte> must be numeric\n");
     }
 
-    if (byte < 0 || byte > std::numeric_limits<unsigned char>::max())
-    {
-        throw std::invalid_argument("Argument <byte> must "
-            "be between 0 and 255\n");
-    }
+    return byte;
 }
 
 int RevertBitsInByte(int byte)
@@ -48,9 +55,11 @@ int main(int argc, char* argv[])
 
     try
     {
-        ValidateParameters(argc, argv, byte);
+        byte = ParseParameters(argc, argv);
+
+        ValidateByte(byte);
     }
-    catch (const std::invalid_argument& e)
+    catch (const std::exception& e)
     {
         std::cout << e.what();
         return 1;

@@ -2,13 +2,18 @@
 #include <fstream>
 #include <string>
 
-const std::string ACTION_CRYPT = "crypt";
-const std::string ACTION_DECRYPT = "decrypt";
+const auto ACTION_CRYPT = "crypt";
+const auto ACTION_DECRYPT = "decrypt";
 
 const int SHIFT_LEFT_BY_TWO = 2;
+const int SHIFT_LEFT_BY_THREE = 3;
 const int SHIFT_RIGHT_BY_TWO = 2;
 const int SHIFT_RIGHT_BY_FIVE = 5;
-const int SHIFT_LEFT_BY_THREE = 3;
+
+const int PLOT_OF_BITS_TO_SHIFT_LEFT_BY_TWO = 0b00011100;
+const int PLOT_OF_BITS_TO_SHIFT_LEFT_BY_THREE = 0b11000000;
+const int PLOT_OF_BITS_TO_SHIFT_RIGHT_BY_TWO = 0b00100000;
+const int PLOT_OF_BITS_TO_SHIFT_RIGHT_BY_FIVE = 0b00000011;
 
 struct Params {
     std::string action;
@@ -17,37 +22,44 @@ struct Params {
     int key;
 };
 
-void Crypt(std::istream& input, std::ostream& output, const int key)
+void Crypt(std::istream& input, std::ostream& output, const int& key)
 {
-    char ch;
-    while (input.read((char*)&ch, sizeof(ch)))
+    const int CHAR_SIZE = sizeof(char);
+
+    char byte;
+    while (input.read(&byte, CHAR_SIZE))
     {
-        int byte = ch ^ key;
+        int byteCryptByKey = byte ^ key;
 
-        int byteCrypt = 
-            ((byte << SHIFT_LEFT_BY_TWO) & 0b00011100) |
-            ((byte >> SHIFT_RIGHT_BY_FIVE) & 0b00000011) |
-            ((byte << SHIFT_LEFT_BY_THREE) & 0b11000000) |
-            ((byte >> SHIFT_RIGHT_BY_TWO) & 0b00100000);
-
-        output << byteCrypt << ' ';
+        output << (
+            ((byteCryptByKey << SHIFT_LEFT_BY_TWO) & 
+                PLOT_OF_BITS_TO_SHIFT_LEFT_BY_TWO) |
+            ((byteCryptByKey >> SHIFT_RIGHT_BY_FIVE) & 
+                PLOT_OF_BITS_TO_SHIFT_RIGHT_BY_FIVE) |
+            ((byteCryptByKey << SHIFT_LEFT_BY_THREE) & 
+                PLOT_OF_BITS_TO_SHIFT_LEFT_BY_THREE) |
+            ((byteCryptByKey >> SHIFT_RIGHT_BY_TWO) & 
+                PLOT_OF_BITS_TO_SHIFT_RIGHT_BY_TWO)
+        ) << ' ';
     }
 }
 
-void Decrypt(std::istream& input, std::ostream& output, const int key)
+void Decrypt(std::istream& input, std::ostream& output, const int& key)
 {
     int byte;
     while (input >> byte)
     {
         int byteDecrypt =
-            ((byte & 0b00011100) >> SHIFT_LEFT_BY_TWO) |
-            ((byte & 0b00000011) << SHIFT_RIGHT_BY_FIVE) |
-            ((byte & 0b11000000) >> SHIFT_LEFT_BY_THREE) |
-            ((byte & 0b00100000) << SHIFT_RIGHT_BY_TWO);
+            ((byte & PLOT_OF_BITS_TO_SHIFT_LEFT_BY_TWO) >> 
+                SHIFT_LEFT_BY_TWO) |
+            ((byte & PLOT_OF_BITS_TO_SHIFT_RIGHT_BY_FIVE) << 
+                SHIFT_RIGHT_BY_FIVE) |
+            ((byte & PLOT_OF_BITS_TO_SHIFT_LEFT_BY_THREE) >> 
+                SHIFT_LEFT_BY_THREE) |
+            ((byte & PLOT_OF_BITS_TO_SHIFT_RIGHT_BY_TWO) << 
+                SHIFT_RIGHT_BY_TWO);
 
-        char ch = byteDecrypt ^ key;
-
-        output << ch;
+        output << char(byteDecrypt ^ key);
     }
 }
 
@@ -62,29 +74,29 @@ void OpenFiles(
 
     if (!inFile.is_open())
     {
-        throw std::logic_error("Failed to open " + inFileName +
+        throw std::runtime_error("Failed to open " + inFileName +
             " for reading\n");
     }
 
     if (!outFile.is_open())
     {
-        throw std::logic_error("Failed to open " + outFileName +
+        throw std::runtime_error("Failed to open " + outFileName +
             " for writing\n");
     }
 }
 
-void ValidateParameters(Params& params)
+void ValidateParameters(const Params& params)
 {
     if (params.action != ACTION_CRYPT && params.action != ACTION_DECRYPT)
     {
         throw std::runtime_error("Argument <action> is not defined\n"
-            "Usage: crypt.exe <action>(crypt|decrypt) ...\n");
+            "Use crypt/decrypt as the <action> argument\n");
     }
 
     if (params.key < 0 || params.key > std::numeric_limits<unsigned char>::max())
     {
         throw std::runtime_error("Argument <key> must be in "
-            "the range 0 - 255\n");
+            "the range 0 and 255\n");
     }
 }
 
@@ -115,6 +127,27 @@ Params ParseParameters(int argc, char* argv[])
     return params;
 }
 
+void PerformActionOnInputFileToOutputFile(
+    std::istream& input,
+    std::ostream& output,
+    const std::string& action, 
+    const int& key)
+{
+    if (action == ACTION_CRYPT)
+    {
+        Crypt(input, output, key);
+    }
+    else
+    {
+        Decrypt(input, output, key);
+    }
+
+    if (!output.flush())
+    {
+        throw std::runtime_error("Failed to save data on disk\n");
+    }
+}
+
 int main(int argc, char* argv[])
 {
     std::ifstream input;
@@ -129,25 +162,13 @@ int main(int argc, char* argv[])
         ValidateParameters(params);
 
         OpenFiles(input, output, params.inputPath, params.outputPath);
+
+        PerformActionOnInputFileToOutputFile(
+            input, output, params.action, params.key);
     }
     catch (const std::exception& e)
     {
         std::cout << e.what();
-        return 1;
-    }
-
-    if (params.action == ACTION_CRYPT)
-    {
-        Crypt(input, output, params.key);
-    }
-    else
-    {
-        Decrypt(input, output, params.key);
-    }
-
-    if (!output.flush())
-    {
-        std::cout << "Failed to save data on disk\n";
         return 1;
     }
 
