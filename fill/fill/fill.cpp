@@ -4,17 +4,50 @@
 #include <algorithm>
 #include <sstream>
 
-using field = std::vector<std::vector<char>>;
+using FieldRow = std::vector<char>;
+using FillField = std::vector<FieldRow>;
 
 const int MAX_FIELD_SIZE = 100;
 
 const char FILL_SYMBOL = '.';
 const char FILL_START_SYMBOL = 'O';
 
-struct Params {
+const char DIRECTION_UP = 'U';
+const char DIRECTION_DOWN = 'D';
+const char DIRECTION_LEFT = 'L';
+const char DIRECTION_RIGHT = 'R';
+
+struct FileParams {
     std::string inputPath;
     std::string outputPath;
 };
+
+struct StackField {
+    int y;
+    int x;
+};
+
+using Stack = std::vector<StackField>;
+
+void StackPush(Stack& stack, const int& y, const int& x)
+{
+    StackField stackField = { y, x };
+
+    stack.push_back(stackField);
+}
+
+StackField StackPop(Stack& stack)
+{
+    StackField stackField = {};
+
+    if (!stack.empty())
+    {
+        stackField = stack[stack.size() - 1];
+        stack.pop_back();
+    }
+
+    return stackField;
+}
 
 void OpenFiles(
     std::ifstream& input, 
@@ -38,7 +71,7 @@ void OpenFiles(
     }
 }
 
-Params ParseParameters(int argc, char* argv[])
+FileParams ParseParameters(int argc, char* argv[])
 {
     if (argc != 3)
     {
@@ -46,99 +79,153 @@ Params ParseParameters(int argc, char* argv[])
             "Usage: fill.exe <input file> <output file>\n");
     }
 
-    Params params;
+    FileParams fileParams;
 
-    params.inputPath = argv[1];
-    params.outputPath = argv[2];
+    fileParams.inputPath = argv[1];
+    fileParams.outputPath = argv[2];
 
-    return params;
+    return fileParams;
 }
 
-void EqualizeSizeOfVectorsInVector(field& vec)
+void CopyFieldFromFileToVector(std::istream& input, FillField& fillField)
 {
-    size_t maxSize = 0;
-
-    for (auto row : vec)
+    std::string str;
+    for (int i = 0; i < MAX_FIELD_SIZE && std::getline(input, str); i++)
     {
-        size_t rowSize = row.size();
+        FieldRow fieldRow = fillField[i];
 
-        if (rowSize > maxSize)
+        for (int j = 0; j < MAX_FIELD_SIZE && j < str.length(); j++)
         {
-            maxSize = rowSize;
+            fieldRow[j] = str[j];
         }
+
+        fillField[i] = fieldRow;
+    }
+}
+
+void SaveInStackWithMetkaUpdate(
+    const FillField& fillField, 
+    Stack& stack, 
+    bool& putMetka, 
+    const int& y, 
+    const int& x)
+{
+    const bool isSpace = fillField[y][x] == ' ';
+
+    if (!putMetka && isSpace)
+    {
+        StackPush(stack, y, x);
     }
 
-    std::transform(vec.begin(), vec.end(), vec.begin(), 
-    [maxSize](std::vector<char>& row) {
-        size_t rowSize = row.size();
-
-        for (rowSize; rowSize < maxSize; rowSize++)
-        {
-            row.push_back(' ');
-        }
-
-        return row;
-    });
+    putMetka = isSpace;
 }
 
-void CopyFieldFromFileToVector(std::istream& input, field& fieldResult)
+void FillColumnInDirection(
+    FillField& fillField,
+    int y,
+    const int x,
+    const char& directionY,
+    Stack& stack)
 {
-    const char ENDL = '\n';
+    bool putMetkaLeft = false;
+    bool putMetkaRight = false;
 
-    char ch;
-    for (int height = 0; height < MAX_FIELD_SIZE && !input.eof(); height++)
+    while (y >= 0 && y < MAX_FIELD_SIZE && fillField[y][x] == ' ')
     {
-        std::vector<char> row;
+        fillField[y][x] = FILL_SYMBOL;
 
-        for (int width = 0; input.get(ch) && ch != ENDL; width++)
+        if (x - 1 >= 0)
         {
-            if (width < MAX_FIELD_SIZE)
+            SaveInStackWithMetkaUpdate(
+                fillField, stack, putMetkaLeft, y, x - 1);
+        }
+        if (x + 1 < MAX_FIELD_SIZE)
+        {
+            SaveInStackWithMetkaUpdate(
+                fillField, stack, putMetkaRight, y, x + 1);
+        }
+
+        y = directionY == DIRECTION_UP ? y - 1 : y + 1;
+    }
+}
+
+void FillRowInDirection(
+    FillField& fillField, 
+    const int y, 
+    int x, 
+    const char& directionX,
+    Stack& stack)
+{
+    bool putMetkaUp = false;
+    bool putMetkaDown = false;
+
+    while (x >= 0 && x < MAX_FIELD_SIZE && fillField[y][x] == ' ')
+    {
+        fillField[y][x] = FILL_SYMBOL;
+
+        if (y - 1 >= 0)
+        {
+            SaveInStackWithMetkaUpdate(
+                fillField, stack, putMetkaUp, y - 1, x);
+        }
+        if (y + 1 < MAX_FIELD_SIZE)
+        {
+            SaveInStackWithMetkaUpdate(
+                fillField, stack, putMetkaDown, y + 1, x);
+        }
+
+        x = directionX == DIRECTION_LEFT ? x - 1 : x + 1;
+    }
+}
+
+void FillFromStartPosition(FillField& fillField, int y, int x)
+{
+    Stack stack;
+    StackField stackField = { y, x };
+
+    do
+    {
+        const char symbolByPosition = fillField[stackField.y][stackField.x];
+
+        if (symbolByPosition == ' ' || symbolByPosition == FILL_START_SYMBOL)
+        {
+            if (symbolByPosition == ' ')
             {
-                row.push_back(ch);
+                fillField[stackField.y][stackField.x] = FILL_SYMBOL;
+            }
+
+            FillRowInDirection(fillField, stackField.y, 
+                stackField.x - 1, DIRECTION_LEFT, stack);
+            FillRowInDirection(fillField, stackField.y, 
+                stackField.x + 1, DIRECTION_RIGHT, stack);
+
+            FillColumnInDirection(fillField, stackField.y - 1, 
+                stackField.x, DIRECTION_UP, stack);
+            FillColumnInDirection(fillField, stackField.y + 1, 
+                stackField.x, DIRECTION_DOWN, stack);
+        }
+
+        stackField = StackPop(stack);
+    } while (!stack.empty());
+}
+
+void FillToOutline(FillField& fillField)
+{
+    for (int y = 0; y < MAX_FIELD_SIZE; y++)
+    {
+        for (int x = 0; x < MAX_FIELD_SIZE; x++)
+        {
+            if (fillField[y][x] == FILL_START_SYMBOL)
+            {
+                FillFromStartPosition(fillField, y, x);
             }
         }
-
-        fieldResult.push_back(row);
-    }
-
-    EqualizeSizeOfVectorsInVector(fieldResult);
-}
-
-void FillToOutline(field& vec, int x, int y)
-{
-    if (y >= vec.size() || x >= vec[y].size() || vec[y][x] != ' ')
-    {
-        return;
-    }
-
-    vec[y][x] = FILL_SYMBOL;
-
-    FillToOutline(vec, x + 1, y);
-    FillToOutline(vec, x - 1, y);
-    FillToOutline(vec, x, y + 1);
-    FillToOutline(vec, x, y - 1);
-}
-
-void Fill(field& vec)
-{
-    for (int y = 0; y < vec.size(); y++)
-    {
-        for (int x = 0; x < vec[y].size(); x++)
-        {
-            if (vec[y][x] == FILL_START_SYMBOL)
-            {
-                FillToOutline(vec, x + 1, y);
-                FillToOutline(vec, x - 1, y);
-                FillToOutline(vec, x, y + 1);
-                FillToOutline(vec, x, y - 1);
-            }
-        }
     }
 }
 
-void CopyVectorToOutFile(field vec, std::ostream& outFile)
+void CopyVectorToOutFile(FillField vec, std::ostream& outFile)
 {
-    for (auto row : vec)
+    for (FieldRow row : vec)
     {
         std::ostringstream oss;
 
@@ -153,40 +240,50 @@ void CopyVectorToOutFile(field vec, std::ostream& outFile)
     }
 }
 
+void FillVectorWithSpacesWithMaxSize(FillField& fillField)
+{
+    for (int i = 0; i < MAX_FIELD_SIZE; i++)
+    {
+        FieldRow fieldRow;
+
+        for (int j = 0; j < MAX_FIELD_SIZE; j++)
+        {
+            fieldRow.push_back(' ');
+        }
+
+        fillField.push_back(fieldRow);
+    }
+}
+
 int main(int argc, char* argv[])
 {
     std::ifstream input;
     std::ofstream output;
 
-    Params params;
+    FillField fillField;
+
+    FileParams fileParams;
 
 	try
 	{
-        params = ParseParameters(argc, argv);
+        fileParams = ParseParameters(argc, argv);
 
-        OpenFiles(input, output, params.inputPath, params.outputPath);
+        OpenFiles(
+            input, output, fileParams.inputPath, fileParams.outputPath);
+
+        FillVectorWithSpacesWithMaxSize(fillField);
+
+        CopyFieldFromFileToVector(input, fillField);
+
+        FillToOutline(fillField);
+
+        CopyVectorToOutFile(fillField, output);
 	}
 	catch (const std::exception& e)
 	{
 		std::cout << e.what();
 		return 1;
 	}
-
-    field fieldToFill;
-
-    CopyFieldFromFileToVector(input, fieldToFill);
-
-    Fill(fieldToFill);
-
-    try
-    {
-        CopyVectorToOutFile(fieldToFill, output);
-    }
-    catch (const std::exception& e)
-    {
-        std::cout << e.what();
-        return 1;
-    }
 
     return 0;
 }
