@@ -103,10 +103,10 @@ void CopyFieldFromFileToVector(std::istream& input, FillField& fillField)
     }
 }
 
-void SaveInStackWithMetkaUpdate(
+bool SaveInStackWithMetkaUpdate(
     const FillField& fillField, 
     Stack& stack, 
-    bool& putMetka, 
+    const bool& putMetka, 
     const int& y, 
     const int& x)
 {
@@ -117,13 +117,13 @@ void SaveInStackWithMetkaUpdate(
         StackPush(stack, y, x);
     }
 
-    putMetka = isSpace;
+    return isSpace;
 }
 
 void FillColumnInDirection(
     FillField& fillField,
     int y,
-    const int x,
+    const int& x,
     const char& directionY,
     Stack& stack)
 {
@@ -136,12 +136,12 @@ void FillColumnInDirection(
 
         if (x - 1 >= 0)
         {
-            SaveInStackWithMetkaUpdate(
+            putMetkaLeft = SaveInStackWithMetkaUpdate(
                 fillField, stack, putMetkaLeft, y, x - 1);
         }
         if (x + 1 < MAX_FIELD_SIZE)
         {
-            SaveInStackWithMetkaUpdate(
+            putMetkaRight = SaveInStackWithMetkaUpdate(
                 fillField, stack, putMetkaRight, y, x + 1);
         }
 
@@ -151,7 +151,7 @@ void FillColumnInDirection(
 
 void FillRowInDirection(
     FillField& fillField, 
-    const int y, 
+    const int& y, 
     int x, 
     const char& directionX,
     Stack& stack)
@@ -165,12 +165,12 @@ void FillRowInDirection(
 
         if (y - 1 >= 0)
         {
-            SaveInStackWithMetkaUpdate(
+            putMetkaUp = SaveInStackWithMetkaUpdate(
                 fillField, stack, putMetkaUp, y - 1, x);
         }
         if (y + 1 < MAX_FIELD_SIZE)
         {
-            SaveInStackWithMetkaUpdate(
+            putMetkaDown = SaveInStackWithMetkaUpdate(
                 fillField, stack, putMetkaDown, y + 1, x);
         }
 
@@ -223,13 +223,14 @@ void FillToOutline(FillField& fillField)
     }
 }
 
-void CopyVectorToOutFile(FillField vec, std::ostream& outFile)
+void CopyVectorToOutFile(FillField& fillField, std::ostream& outFile)
 {
-    for (FieldRow row : vec)
+    for (FieldRow fieldRow : fillField)
     {
         std::ostringstream oss;
 
-        std::copy(row.begin(), row.end(), std::ostream_iterator<char>(oss, ""));
+        std::copy(fieldRow.begin(), fieldRow.end(), 
+            std::ostream_iterator<char>(oss, ""));
 
         outFile << oss.str() << std::endl;
     }
@@ -260,9 +261,8 @@ int main(int argc, char* argv[])
     std::ifstream input;
     std::ofstream output;
 
-    FillField fillField;
-
     FileParams fileParams;
+    FillField fillField;
 
 	try
 	{

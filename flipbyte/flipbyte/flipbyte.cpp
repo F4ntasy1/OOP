@@ -19,18 +19,16 @@ int ParseParameters(int argc, char* argv[])
             "Usage: flipbyte.exe <byte>\n");
     }
 
-    int byte;
-
     try
     {
-        byte = std::stoi(argv[1]);
+        int byte = std::stoi(argv[1]);
+
+        return byte;
     }
     catch (const std::exception&)
     {
         throw std::runtime_error("Argument <byte> must be numeric\n");
     }
-
-    return byte;
 }
 
 int RevertBitsInByte(int byte)
