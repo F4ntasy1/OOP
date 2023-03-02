@@ -1,3 +1,4 @@
 *.exe
 /.vs/*
 /vector/x64/*
+/vector_tests/x64/*
