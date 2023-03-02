@@ -1,3 +1,4 @@
 *.exe
 /.vs/*
 /htmlDecode/x64/*
+/htmlDecode_tests/x64/*

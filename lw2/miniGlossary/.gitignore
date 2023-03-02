@@ -1,0 +1,4 @@
+*.exe
+/.vs/*
+/miniGlossary/x64/*
+/miniGlossary_tests/x64/*
