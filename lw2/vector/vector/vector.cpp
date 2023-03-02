@@ -33,7 +33,7 @@ float GetVectorAverage(const VectorFloat& vectorFloat)
     return average;
 }
 
-void AddAverageToVectorElements(VectorFloat& vectorFloat, const float& average)
+void AddAverageToVectorElements(VectorFloat& vectorFloat, const float average)
 {
     std::for_each(vectorFloat.begin(), vectorFloat.end(), [average](float& element) {
         element += average;
@@ -50,6 +50,7 @@ void VectorProcessing(VectorFloat& vectorFloat)
 void WriteVectorInOutput(std::ostream& output, VectorFloat vectorFloat)
 {
     std::sort(vectorFloat.begin(), vectorFloat.end());
+
     std::copy(vectorFloat.begin(), vectorFloat.end(), 
         std::ostream_iterator<float>(output, " "));
 }
