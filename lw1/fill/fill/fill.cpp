@@ -29,7 +29,7 @@ struct StackField {
 
 using Stack = std::vector<StackField>;
 
-void StackPush(Stack& stack, const int& y, const int& x)
+void StackPush(Stack& stack, const int y, const int x)
 {
     StackField stackField = { y, x };
 
@@ -87,8 +87,16 @@ FileParams ParseParameters(int argc, char* argv[])
     return fileParams;
 }
 
-void CopyFieldFromFileToVector(std::istream& input, FillField& fillField)
+void CopyFieldFromFileToVector(FillField& fillField, const std::string& inputPath)
 {
+    std::ifstream input(inputPath);
+
+    if (!input.is_open())
+    {
+        throw std::runtime_error("Failed to open " +
+            inputPath + " for reading\n");
+    }
+
     std::string str;
     for (int i = 0; i < MAX_FIELD_SIZE && std::getline(input, str); i++)
     {
@@ -106,9 +114,9 @@ void CopyFieldFromFileToVector(std::istream& input, FillField& fillField)
 bool SaveInStackWithMetkaUpdate(
     const FillField& fillField, 
     Stack& stack, 
-    const bool& putMetka, 
-    const int& y, 
-    const int& x)
+    const bool putMetka, 
+    const int y, 
+    const int x)
 {
     const bool isSpace = fillField[y][x] == ' ';
 
@@ -123,8 +131,8 @@ bool SaveInStackWithMetkaUpdate(
 void FillColumnInDirection(
     FillField& fillField,
     int y,
-    const int& x,
-    const char& directionY,
+    const int x,
+    const char directionY,
     Stack& stack)
 {
     bool putMetkaLeft = false;
@@ -151,9 +159,9 @@ void FillColumnInDirection(
 
 void FillRowInDirection(
     FillField& fillField, 
-    const int& y, 
+    const int y, 
     int x, 
-    const char& directionX,
+    const char directionX,
     Stack& stack)
 {
     bool putMetkaUp = false;
@@ -178,14 +186,14 @@ void FillRowInDirection(
     }
 }
 
-void FillFromStartPosition(FillField& fillField, int y, int x)
+void FillFromStartPosition(FillField& fillField, const int y, const int x)
 {
     Stack stack;
     StackField stackField = { y, x };
 
     do
     {
-        const char symbolByPosition = fillField[stackField.y][stackField.x];
+        char symbolByPosition = fillField[stackField.y][stackField.x];
 
         if (symbolByPosition == ' ' || symbolByPosition == FILL_START_SYMBOL)
         {
@@ -223,8 +231,16 @@ void FillToOutline(FillField& fillField)
     }
 }
 
-void CopyVectorToOutFile(FillField& fillField, std::ostream& outFile)
+void CopyVectorToOutFile(const FillField& fillField, const std::string& outputPath)
 {
+    std::ofstream output(outputPath);
+
+    if (!output.is_open())
+    {
+        throw std::runtime_error("Failed to open " +
+            outputPath + " for writing\n");
+    }
+
     for (FieldRow fieldRow : fillField)
     {
         std::ostringstream oss;
@@ -232,10 +248,10 @@ void CopyVectorToOutFile(FillField& fillField, std::ostream& outFile)
         std::copy(fieldRow.begin(), fieldRow.end(), 
             std::ostream_iterator<char>(oss, ""));
 
-        outFile << oss.str() << std::endl;
+        output << oss.str() << std::endl;
     }
 
-    if (!outFile.flush())
+    if (!output.flush())
     {
         throw std::runtime_error("Failed to save data on disk\n");
     }
@@ -261,23 +277,19 @@ int main(int argc, char* argv[])
     std::ifstream input;
     std::ofstream output;
 
-    FileParams fileParams;
-    FillField fillField;
-
 	try
 	{
-        fileParams = ParseParameters(argc, argv);
+        FileParams fileParams = ParseParameters(argc, argv);
 
-        OpenFiles(
-            input, output, fileParams.inputPath, fileParams.outputPath);
+        FillField fillField;
 
         FillVectorWithSpacesWithMaxSize(fillField);
 
-        CopyFieldFromFileToVector(input, fillField);
+        CopyFieldFromFileToVector(fillField, fileParams.inputPath);
 
         FillToOutline(fillField);
 
-        CopyVectorToOutFile(fillField, output);
+        CopyVectorToOutFile(fillField, fileParams.outputPath);
 	}
 	catch (const std::exception& e)
 	{
