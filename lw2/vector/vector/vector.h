@@ -5,32 +5,27 @@
 #include <iterator>
 #include <algorithm>
 
-using VectorFloat = std::vector<float>;
+using VectorFloat = std::vector<double>;
 
 const int DIVIDER = 2;
 const int ROUND_FACTOR = 1000;
 
 void ReadVectorFromInput(std::istream& input, VectorFloat& vectorFloat)
 {
-    float number;
+    double number;
 
-    while (!input.eof())
+    while (!input.eof() && input >> number)
     {
-        if (!(input >> number))
-        {
-            throw std::runtime_error("Failed to read in input stream\n");
-        }
-
         vectorFloat.push_back(number);
     }
 }
 
-float GetVectorAverage(const VectorFloat& vectorFloat)
+double GetVectorAverage(const VectorFloat& vectorFloat)
 {
-    float average = 0;
+    double average = 0;
 
     std::for_each(vectorFloat.begin(), vectorFloat.end(),
-        [&average](const float element) {
+        [&average](const double element) {
             if (element > 0)
             {
                 average += round(element / DIVIDER * ROUND_FACTOR) / ROUND_FACTOR;
@@ -40,24 +35,35 @@ float GetVectorAverage(const VectorFloat& vectorFloat)
     return average;
 }
 
-void AddAverageToVectorElements(VectorFloat& vectorFloat, const float average)
+void AddAverageToVectorElements(VectorFloat& vectorFloat, const double average)
 {
-    std::for_each(vectorFloat.begin(), vectorFloat.end(), [average](float& element) {
+    if (average < 0)
+    {
+        return;
+    }
+
+    std::for_each(vectorFloat.begin(), vectorFloat.end(), [average](double& element) {
         element += average;
     });
 }
 
 void VectorProcessing(VectorFloat& vectorFloat)
 {
-    const float average = GetVectorAverage(vectorFloat);
+    const double average = GetVectorAverage(vectorFloat);
 
     AddAverageToVectorElements(vectorFloat, average);
 }
 
 void WriteVectorInOutput(std::ostream& output, VectorFloat vectorFloat)
 {
+    if (vectorFloat.empty())
+    {
+        return;
+    }
+
     std::sort(vectorFloat.begin(), vectorFloat.end());
 
     std::copy(vectorFloat.begin(), vectorFloat.end(),
-        std::ostream_iterator<float>(output, " "));
+        std::ostream_iterator<double>(output, " "));
+    output << std::endl;
 }

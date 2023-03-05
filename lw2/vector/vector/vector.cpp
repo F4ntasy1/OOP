@@ -5,20 +5,12 @@
 
 int main()
 {
-    try
-    {
-        VectorFloat vectorFloat;
-        ReadVectorFromInput(std::cin, vectorFloat);
+    VectorFloat vectorFloat;
+    ReadVectorFromInput(std::cin, vectorFloat);
 
-        VectorProcessing(vectorFloat);
+    VectorProcessing(vectorFloat);
 
-        WriteVectorInOutput(std::cout, vectorFloat);
-    }
-    catch (const std::exception& e)
-    {
-        std::cout << e.what();
-        return 1;
-    }
+    WriteVectorInOutput(std::cout, vectorFloat);
 
     return 0;
 }
