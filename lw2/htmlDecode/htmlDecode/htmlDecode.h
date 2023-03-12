@@ -3,17 +3,7 @@
 #include <iostream>
 #include <string>
 
-const std::string ENCODE_DOUBLE_QUOTE = "&quot;";
-const std::string ENCODE_APOSTROPHE = "&apos;";
-const std::string ENCODE_SIGN_LESS = "&lt;";
-const std::string ENCODE_SIGN_MORE = "&gt;";
-const std::string ENCODE_AMPERSAND = "&amp;";
-
-const char DECODE_DOUBLE_QUOTE = '\"';
-const char DECODE_APOSTROPHE = '\'';
-const char DECODE_SIGN_LESS = '<';
-const char DECODE_SIGN_MORE = '>';
-const char DECODE_AMPERSAND = '&';
+#include "consts.h"
 
 char GetDecodeHtmlSymbol(const std::string& htmlEntity)
 {
@@ -37,8 +27,11 @@ std::string HtmlDecode(const std::string& html)
     const char ENTITY_START_CHARACTER = '&';
     const char ENTITY_END_CHARACTER = ';';
 
+    // исп. так : std::string decodeString;
     std::string decodeString = std::string();
-    std::string temp = std::string();
+    // название не верное
+    // сделать без временной строки, через индексы изнач. строки
+    std::string temp;
     bool htmlEntityProcessing = false;
 
     for (const char ch : html)
@@ -56,6 +49,7 @@ std::string HtmlDecode(const std::string& html)
 
             if (ch == ENTITY_END_CHARACTER)
             {
+                // не искать дважды
                 if (CheckStringForMatchingHtmlEntity(temp))
                 {
                     temp = GetDecodeHtmlSymbol(temp);
@@ -71,8 +65,9 @@ std::string HtmlDecode(const std::string& html)
             decodeString += ch;
         }
     }
+    decodeString += temp;
 
-    return decodeString + temp;
+    return decodeString;
 }
 
 void DecodeInputToOutput(std::istream& input, std::ostream& output)

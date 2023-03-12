@@ -3,6 +3,7 @@
 #include "../../../catch2/catch.hpp"
 
 #include "../htmlDecode/htmlDecode.h"
+#include "../htmlDecode/consts.h"
 
 SCENARIO("Get decode html entity")
 {
@@ -35,7 +36,6 @@ SCENARIO("Html decode")
 	{
 		THEN("Output string is empty")
 		{
-			str = std::string();
 			REQUIRE(HtmlDecode(str) == "");
 		}
 	}
@@ -44,12 +44,9 @@ SCENARIO("Html decode")
 	{
 		THEN("Output string contains decode html entities")
 		{
-			str = "M&amp;M&apos;s";
-			REQUIRE(HtmlDecode(str) == "M&M's");
-			str = "M&amp;M&apos;&apos;s";
-			REQUIRE(HtmlDecode(str) == "M&M''s");
-			str = "M&gt;&&&lt;M";
-			REQUIRE(HtmlDecode(str) == "M>&&<M");
+			REQUIRE(HtmlDecode("M&amp;M&apos;s") == "M&M's");
+			REQUIRE(HtmlDecode("M&amp;M&apos;&apos;s") == "M&M''s");
+			REQUIRE(HtmlDecode("M&gt;&&&lt;M") == "M>&&<M");
 		}
 	}
 
@@ -57,10 +54,8 @@ SCENARIO("Html decode")
 	{
 		THEN("Output string does not contains decode html entities")
 		{
-			str = "M&ampM's";
-			REQUIRE(HtmlDecode(str) == str);
-			str = "M&aposs;";
-			REQUIRE(HtmlDecode(str) == str);
+			REQUIRE(HtmlDecode("M&ampM's") == "M&ampM's");
+			REQUIRE(HtmlDecode("M&aposs;") == "M&aposs;");
 		}
 	}
 }

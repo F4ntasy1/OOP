@@ -1,6 +1,7 @@
 ﻿#include <iostream>
 
 #include "htmlDecode.h"
+#include "consts.h"
 
 int main()
 {
