@@ -4,12 +4,12 @@
 
 int main()
 {
-    VectorFloat vectorFloat;
-    ReadVectorFromInput(std::cin, vectorFloat);
+    VectorDouble vectorDouble;
+    ReadVectorFromInput(std::cin, vectorDouble);
 
-    VectorProcessing(vectorFloat);
+    FindAverageAndAddToVectorElements(vectorDouble);
 
-    WriteVectorInOutput(std::cout, vectorFloat);
+    WriteVectorToOutput(std::cout, vectorDouble);
 
     return 0;
 }

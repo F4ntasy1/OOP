@@ -5,65 +5,62 @@
 #include <iterator>
 #include <algorithm>
 
-using VectorFloat = std::vector<double>;
+using VectorDouble = std::vector<double>;
 
-const int DIVIDER = 2;
 const int ROUND_FACTOR = 1000;
 
-void ReadVectorFromInput(std::istream& input, VectorFloat& vectorFloat)
+void ReadVectorFromInput(std::istream& input, VectorDouble& vectorDouble)
 {
     double number;
 
     while (!input.eof() && input >> number)
     {
-        vectorFloat.push_back(number);
+        vectorDouble.push_back(number);
     }
 }
 
-double GetVectorAverage(const VectorFloat& vectorFloat)
+double GetVectorAverage(const VectorDouble& vectorDouble)
 {
     double average = 0;
 
-    std::for_each(vectorFloat.begin(), vectorFloat.end(),
+    std::for_each(vectorDouble.begin(), vectorDouble.end(),
         [&average](const double element) {
             if (element > 0)
             {
-                average += round(element / DIVIDER * ROUND_FACTOR) / ROUND_FACTOR;
+                average += round(element / 2 * ROUND_FACTOR) / ROUND_FACTOR;
             }
         });
 
     return average;
 }
 
-void AddAverageToVectorElements(VectorFloat& vectorFloat, const double average)
+void AddAverageToVectorElements(VectorDouble& vectorDouble, const double average)
 {
-    if (average < 0)
+    if (average >= 0)
     {
-        return;
+        std::for_each(vectorDouble.begin(), vectorDouble.end(),
+            [average](double& element) {
+                element += average;
+            });
     }
-
-    std::for_each(vectorFloat.begin(), vectorFloat.end(), [average](double& element) {
-        element += average;
-    });
 }
 
-void VectorProcessing(VectorFloat& vectorFloat)
+void FindAverageAndAddToVectorElements(VectorDouble& vectorDouble)
 {
-    const double average = GetVectorAverage(vectorFloat);
+    const double average = GetVectorAverage(vectorDouble);
 
-    AddAverageToVectorElements(vectorFloat, average);
+    AddAverageToVectorElements(vectorDouble, average);
 }
 
-void WriteVectorInOutput(std::ostream& output, VectorFloat vectorFloat)
+void WriteVectorToOutput(std::ostream& output, VectorDouble vectorDouble)
 {
-    if (vectorFloat.empty())
+    if (!vectorDouble.empty())
     {
-        return;
+        std::sort(vectorDouble.begin(), vectorDouble.end());
+
+        std::copy(vectorDouble.begin(), vectorDouble.end(),
+            std::ostream_iterator<double>(output, " "));
+
+        output << std::endl;
     }
-
-    std::sort(vectorFloat.begin(), vectorFloat.end());
-
-    std::copy(vectorFloat.begin(), vectorFloat.end(),
-        std::ostream_iterator<double>(output, " "));
-    output << std::endl;
 }
