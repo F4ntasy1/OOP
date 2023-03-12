@@ -149,6 +149,9 @@
   <ItemGroup>
     <ClCompile Include="miniGlossary.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="miniGlossary.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
